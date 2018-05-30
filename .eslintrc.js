@@ -2,18 +2,23 @@ module.exports = {
   root: true,
   parser: 'babel-eslint',
   parserOptions: {
-    sourceType: 'module'
+    sourceType: 'module',
   },
   env: {
     browser: true,
-    node: true
+    node: true,
   },
   extends: 'standard',
   globals: {
-    __static: true
+    __static: true,
+    '$': false,
+    'jQuery': false,
+    'Together': false,
+    'bootbox': false,
+    'Stripe': false,
   },
   plugins: [
-    'html'
+    'html',
   ],
   'rules': {
     // allow paren-less arrow functions
@@ -21,6 +26,17 @@ module.exports = {
     // allow async-await
     'generator-star-spacing': 0,
     // allow debugger during development
-    'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
-  }
+    'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0,
+
+    'comma-dangle': 0,
+
+    'space-unary-ops': [2, {
+      'words': true,
+      'nonwords': true,
+      'overrides': {
+        '++': false,
+        '--': false,
+      },
+    }],
+  },
 }
