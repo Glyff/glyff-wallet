@@ -1,40 +1,85 @@
 <template>
-  <div>
-    <div class="left-side">
-      <span class="title">
-        Welcome to your new project!
-      </span>
-      <system-information></system-information>
-    </div>
-
-    <div class="right-side">
-      <div class="doc">
-        <div class="title">Getting Started</div>
-        <p>
-          electron-vue comes packed with detailed documentation that covers everything from
-          internal configurations, using the project structure, building your application,
-          and so much more.
-        </p>
-        <button @click="open('https://simulatedgreg.gitbooks.io/electron-vue/content/')">Read the Docs</button>
-        <br><br>
+  <div id="overview-block">
+    <div class="row">
+      <div class="col-md-12">
+        <h2 class="right-side-title">Overview<br />
+          <span class="right-side-sub-title">Overview Sub Title</span>
+        </h2>
       </div>
-      <div class="doc">
-        <div class="title alt">Other Documentation</div>
-        <button class="alt" @click="open('https://electron.atom.io/docs/')">Electron</button>
-        <button class="alt" @click="open('https://vuejs.org/v2/guide/')">Vue.js</button>
+    </div>
+    <balances></balances>
+    <div class="simple-panel">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Txtid</th>
+          <th>Direction</th>
+          <th>Amount</th>
+          <th>Type</th>
+          <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
+          <td>direction text example</td>
+          <td>USD$ 12,876</td>
+          <td>Type text example</td>
+          <td>27.04.2018 12:30</td>
+        </tr>
+        <tr>
+          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
+          <td>direction text example</td>
+          <td>USD$ 12,876</td>
+          <td>Type text example</td>
+          <td>27.04.2018 12:30</td>
+        </tr>
+        <tr>
+          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
+          <td>direction text example</td>
+          <td class="negative-amount">USD$ 12,876</td>
+          <td>Type text example</td>
+          <td>27.04.2018 12:30</td>
+        </tr>
+        <tr>
+          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
+          <td>direction text example</td>
+          <td>USD$ 12,876</td>
+          <td>Type text example</td>
+          <td>27.04.2018 12:30</td>
+        </tr>
+        <tr>
+          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
+          <td>direction text example</td>
+          <td>USD$ 12,876</td>
+          <td>Type text example</td>
+          <td>27.04.2018 12:30</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row">
+      <div id="pagination">
+        <ul>
+          <li><a href="#">Previous</a> </li>
+          <li> <a href="#">Next</a> </li>
+          <li> <a href="#">All Transactions</a> </li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import SystemInformation from '../LandingPage/SystemInformation'
+import Balances from '../Layout/Balances'
 
 export default {
   name: 'overview',
+
   components: {
-    SystemInformation,
+    Balances,
   },
+
   methods: {
     open (link) {
       this.$electron.shell.openExternal(link)

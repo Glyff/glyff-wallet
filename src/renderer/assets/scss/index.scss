@@ -1,6 +1,13 @@
-@import "~bootstrap/scss/functions";
 @import "variables";
-@import "~bootstrap/scss/bootstrap";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap";
 
+@import "components/balances";
+@import "components/forms";
 @import "components/general";
+@import "components/helpers";
 @import "components/layout";
+@import "components/navigation";
+@import "components/panels";
+@import "components/right-side";
+@import "components/table";
+@import "components/transitions";

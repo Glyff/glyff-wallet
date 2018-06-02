@@ -1,0 +1,84 @@
+table {
+   padding-bottom: 50px;
+}
+
+th {
+   color: #3fc088;
+   font-size: 16px;
+   text-align: left;
+}
+
+td {
+   font-size: 13px;
+   color: #3f4d57;
+   background: #f0f1f3;
+   font-weight: bold;
+
+}
+
+.table > tbody > tr {
+   border-bottom: 15px solid #fff;
+}
+
+.table > tbody > tr > td {
+   vertical-align: middle;
+   border: 0;
+}
+
+tr {
+   border: none;
+   height: 70px;
+   margin-top: 10px;
+}
+
+.table > thead > tr > th {
+   vertical-align: middle;
+   border: 0;
+}
+
+.negative-amount {
+   color: #e74c3c;
+}
+
+.table-content {
+   margin-top: 20px;
+}
+
+.table-content textarea {
+   height: 300px;
+}
+
+.table-title {
+   font-size: 15px;
+   color: #3fc088;
+}
+
+.table-content-btn-block {
+   text-align: center;
+   margin-top: 35px;
+}
+
+#table-content-btn-send,
+#table-content-btn-save {
+   color: #3fc088;
+   font-size: 16px;
+}
+
+#table-content-btn-send img {
+   height: 25px;
+   margin-right: 7px;
+}
+
+.table-content-top-btn-block a {
+   font-size: 15px !important;
+   margin-right: 20px;
+   color: #3fc088;
+}
+
+.table-content-top-btn-block img {
+   margin-right: 10px;
+}
+
+.table-content-top-navigation {
+   margin-top: 20px;
+}
