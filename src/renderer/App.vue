@@ -5,13 +5,24 @@
 </template>
 
 <script>
+import {mapActions} from 'vuex'
 import Layout from './components/Layout/Layout'
 
 export default {
+  name: 'glyff-wallet',
+
   components: {
     Layout,
   },
 
-  name: 'glyff-wallet'
+  mounted () {
+    this.startApp()
+  },
+
+  methods: {
+    ...mapActions({
+      startApp: 'general/start',
+    }),
+  },
 }
 </script>

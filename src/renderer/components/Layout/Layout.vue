@@ -1,5 +1,6 @@
 <template>
   <div class="container-fluid">
+    <div class="loading-overlay" v-if="globalLoading">Loading...</div>
     <div class="row">
       <div id="left-side" class="col-md-3">
         <sidebar></sidebar>
@@ -14,6 +15,7 @@
 </template>
 
 <script>
+import {mapState} from 'vuex'
 import Sidebar from './Sidebar'
 
 export default {
@@ -21,10 +23,10 @@ export default {
     Sidebar,
   },
 
-  data () {
-    return {
-      //
-    }
-  }
+  computed: {
+    ...mapState({
+      globalLoading: s => s.general.globalLoading,
+    })
+  },
 }
 </script>
