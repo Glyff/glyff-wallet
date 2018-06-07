@@ -2,6 +2,8 @@ import './assets/scss/index.scss'
 import Vue from 'vue'
 import axios from 'axios'
 
+import './filters'
+import './mixins'
 import App from './App'
 import router from './router'
 import store from './store'

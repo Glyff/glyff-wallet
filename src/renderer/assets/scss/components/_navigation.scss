@@ -55,9 +55,17 @@
    font-size: 13px;
    color: #3fc088;
    padding: 4px;
-}
 
-#pagination a:hover {
-   text-decoration: none;
-   border-bottom: 3px solid #3fc088;
+   &:hover {
+      text-decoration: none;
+      border-bottom: 3px solid #3fc088;
+   }
+
+   &[disabled] {
+      color: $gray-base;
+      cursor: not-allowed;
+      &:hover {
+         border-bottom: 0;
+      }
+   }
 }

@@ -15,5 +15,7 @@ export default {
   token: {
     address: '0x0a54a5237dd535de0e67d3c12cfc5bcd2cf3e917',
     abi: require('./token_abi'),
-  }
+  },
+
+  version: require('../../package.json').version,
 }

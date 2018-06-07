@@ -20,40 +20,12 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
-          <td>direction text example</td>
-          <td>USD$ 12,876</td>
-          <td>Type text example</td>
-          <td>27.04.2018 12:30</td>
-        </tr>
-        <tr>
-          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
-          <td>direction text example</td>
-          <td>USD$ 12,876</td>
-          <td>Type text example</td>
-          <td>27.04.2018 12:30</td>
-        </tr>
-        <tr>
-          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
-          <td>direction text example</td>
-          <td class="negative-amount">USD$ 12,876</td>
-          <td>Type text example</td>
-          <td>27.04.2018 12:30</td>
-        </tr>
-        <tr>
-          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
-          <td>direction text example</td>
-          <td>USD$ 12,876</td>
-          <td>Type text example</td>
-          <td>27.04.2018 12:30</td>
-        </tr>
-        <tr>
-          <td>0xde0B295669a9fd93d5F28D9Ec85E40f4cb69</td>
-          <td>direction text example</td>
-          <td>USD$ 12,876</td>
-          <td>Type text example</td>
-          <td>27.04.2018 12:30</td>
+        <tr v-for="tx in transactionsPage">
+          <td>{{ tx.txId }}</td>
+          <td>{{ tx.direction }}</td>
+          <td>{{ tx.amount | ether }}</td>
+          <td>{{ tx.type }}</td>
+          <td>{{ tx.date }}</td>
         </tr>
         </tbody>
       </table>
@@ -61,9 +33,9 @@
     <div class="row">
       <div id="pagination">
         <ul>
-          <li><a href="#">Previous</a> </li>
-          <li> <a href="#">Next</a> </li>
-          <li> <a href="#">All Transactions</a> </li>
+          <li><a href="#" @click.prevent="nextPage" :disabled="page === 1">Previous</a> </li>
+          <li><a href="#" @click.prevent="prevPage" :disabled="page === totalPages">Next</a> </li>
+          <li><a href="#" @click.prevent="showAll = ! showAll">All Transactions</a> </li>
         </ul>
       </div>
     </div>
@@ -71,6 +43,7 @@
 </template>
 
 <script>
+import {mapState} from 'vuex'
 import Balances from '../Layout/Balances'
 
 export default {
@@ -80,10 +53,48 @@ export default {
     Balances,
   },
 
-  methods: {
-    open (link) {
-      this.$electron.shell.openExternal(link)
+  data () {
+    return {
+      page: 1,
+      pageSize: 20,
+      showAll: false,
     }
-  }
+  },
+
+  computed: {
+    ...mapState({
+      transactions: s => s.general.transactions,
+    }),
+
+    totalPages () {
+      let total = Math.ceil(this.transactions.length / this.pageSize)
+      if (total === 0) total = 1
+      return total
+    },
+
+    transactionsPage () {
+      const sorted = this.transactions.slice()
+        // Sort desc by date (just a string comparsion)
+        .sort((a, b) => b.date.localeCompare(a.date))
+
+      if (this.showAll) return sorted
+
+      return sorted.slice(this.page - 1, this.page * this.pageSize - 1)
+    },
+  },
+
+  methods: {
+
+    nextPage () {
+      if (this.page + 1 > this.totalPages) return
+      this.page += 1
+    },
+
+    prevPage () {
+      if (this.page - 1 < 1) return
+      this.page -= 1
+    },
+
+  },
 }
 </script>

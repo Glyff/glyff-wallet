@@ -2,12 +2,14 @@
  * App startup service
  */
 
-import fs from 'fs'
+import fs from 'fs-extra'
 import co from 'co'
-import web3, {connect as web3Connect} from './web3'
+import web3, {connect as web3Connect, isUnlocked} from './web3'
 import config from '../config'
-import {readJsonFile} from '../utils/fs'
+import {loadTrackers} from './tracker'
 // import watchToken from './blockchain'
+
+const debug = require('debug')('startup')
 
 const files = ['accounts.json', 'scache.json', 'cache.json', 'transactions.json']
 
@@ -31,25 +33,37 @@ const allFilesExist = () => files.every(file => fs.existsSync(config.homeDir + f
 export default function () {
   return co(function* () {
     if (! homeExists()) {
+      debug('Home folder does not exist!')
       return {installation: true}
     }
 
     if (! allFilesExist()) {
+      debug('Some of required files are missing!')
       return {filesCorrupted: true}
     }
 
     yield web3Connect()
 
-    const oToken = yield readJsonFile(config.homeDir + 'default_token.json')
+    const oToken = yield fs.readJson(config.homeDir + 'default_token.json')
     const tokenContract = web3.eth.contract(oToken.abi).at(oToken.address)
     // watchToken(tokenContract)
 
-    const [accounts, stBuffer, notesBuffer, tmpTxs] = yield [
-      readJsonFile(config.homeDir + 'accounts.json'),
-      readJsonFile(config.homeDir + 'scache.json'),
-      readJsonFile(config.homeDir + 'cache.json'),
-      readJsonFile(config.homeDir + 'transactions.json'),
+    let [accounts, stBuffer, notesBuffer, transactions] = yield [
+      fs.readJson(config.homeDir + 'accounts.json'),
+      fs.readJson(config.homeDir + 'scache.json'),
+      fs.readJson(config.homeDir + 'cache.json'),
+      fs.readJson(config.homeDir + 'transactions.json'),
     ]
+
+    // Check if accounts are locked (asyncronously)
+    accounts = yield accounts.map(a => {
+      return co(function* () {
+        a.unlocked = yield isUnlocked(a)
+        return a
+      })
+    })
+
+    const trackers = yield loadTrackers(config.homeDir)
 
     return {
       oToken,
@@ -57,7 +71,8 @@ export default function () {
       accounts,
       stBuffer,
       notesBuffer,
-      tmpTxs,
+      transactions,
+      trackers,
     }
   })
 }

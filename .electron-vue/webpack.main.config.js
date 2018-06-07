@@ -63,7 +63,11 @@ let mainConfig = {
 if (process.env.NODE_ENV !== 'production') {
   mainConfig.plugins.push(
     new webpack.DefinePlugin({
-      '__static': `"${path.join(__dirname, '../static').replace(/\\/g, '\\\\')}"`
+      '__static': `"${path.join(__dirname, '../static').replace(/\\/g, '\\\\')}"`,
+      'process.env': {
+        NODE_ENV: JSON.stringify('development'),
+        DEBUG: JSON.stringify(true),
+      },
     })
   )
 }

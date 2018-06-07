@@ -123,6 +123,20 @@ let webConfig = {
 }
 
 /**
+ * Adjust webConfig for development settings
+ */
+if (process.env.NODE_ENV !== 'production') {
+  webConfig.plugins.push(
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: JSON.stringify('development'),
+        DEBUG: JSON.stringify(true),
+      },
+    })
+  )
+}
+
+/**
  * Adjust webConfig for production settings
  */
 if (process.env.NODE_ENV === 'production') {

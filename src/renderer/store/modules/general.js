@@ -1,5 +1,10 @@
+import co from 'co'
+import BigNumber from 'bignumber.js'
 import startup from '../../../services/startup'
 
+/*
+ * State
+ */
 const state = {
   globalLoading: true,
 
@@ -11,10 +16,8 @@ const state = {
   tBalance: 0,
   sBalance: 0,
 
-  selectedAcct: 0,
-  selectedTracker: 0,
-
-  trackers: [],
+  selectedAcctIdx: 0,
+  selectedTrackerIdx: 0,
 
   oToken: null,
   tokenContract: null,
@@ -22,10 +25,53 @@ const state = {
   accounts: [], // Accounts list
   stBuffer: [],
   notesBuffer: [],
-  tmpTxs: [],
+  transactions: [],
+  trackers: [],
 }
 
+/*
+ * Getters
+ */
+const getters = {
+
+  balanceForAddress: state => address => {
+    let balance = new BigNumber(0)
+    state.transactions.forEach(tx => {
+      if (tx.from === address) balance.minus(tx.amount)
+      if (tx.to === address) balance = balance.plus(tx.amount)
+    })
+
+    return balance
+  },
+
+}
+
+/*
+ * Actions
+ */
+const actions = {
+
+  start ({commit}) {
+    commit('START')
+
+    co(function* () {
+      // Use startup service
+      const data = yield startup()
+      commit('START_OK', data)
+    })
+      .catch(error => {
+        commit('START_FAIL', error)
+        throw error // Re-trow exception to let it be caught globally
+      })
+  },
+
+}
+
+/*
+ * Mutations
+ */
 const mutations = {
+
   START (state) {
     state.appStarting = true
     state.globalLoading = true
@@ -42,22 +88,13 @@ const mutations = {
     state.globalLoading = false
     state.startError = error
   },
-}
 
-const actions = {
-  start ({commit}) {
-    commit('START')
-
-    // Use startup service
-    startup()
-      .then(data => commit('START_OK', data))
-      .catch(error => commit('START_FAIL', error))
-  }
 }
 
 export default {
   state,
-  mutations,
+  getters,
   actions,
+  mutations,
   namespaced: true,
 }
