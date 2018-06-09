@@ -17,5 +17,7 @@ export default {
     abi: require('./token_abi'),
   },
 
+  unshieldGas: 125000,
+
   version: require('../../package.json').version,
 }

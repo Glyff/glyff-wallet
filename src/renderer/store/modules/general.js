@@ -13,12 +13,6 @@ const state = {
   installation: false,
   filesCorrupted: false,
 
-  tBalance: 0,
-  sBalance: 0,
-
-  selectedAcctIdx: 0,
-  selectedTrackerIdx: 0,
-
   oToken: null,
   tokenContract: null,
 
@@ -27,6 +21,12 @@ const state = {
   notesBuffer: [],
   transactions: [],
   trackers: [],
+
+  selectedAcctIdx: 0,
+  selectedTrackerIdx: 0,
+
+  tBalance: 0,
+  sBalance: 0,
 }
 
 /*
@@ -34,10 +34,22 @@ const state = {
  */
 const getters = {
 
+  tBalance (state, getters) {
+    if (! getters.selectedAccount) return new BigNumber(0)
+
+    return getters.balanceForAddress(getters.selectedAccount.address)
+  },
+
+  selectedAccount (state) {
+    if (! state.accounts.length) return null
+
+    return state.accounts[state.selectedAcctIdx]
+  },
+
   balanceForAddress: state => address => {
     let balance = new BigNumber(0)
     state.transactions.forEach(tx => {
-      if (tx.from === address) balance.minus(tx.amount)
+      if (tx.from === address) balance = balance.minus(tx.amount)
       if (tx.to === address) balance = balance.plus(tx.amount)
     })
 
