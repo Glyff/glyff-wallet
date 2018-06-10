@@ -27,6 +27,9 @@
           <td>{{ tx.type }}</td>
           <td>{{ tx.date }}</td>
         </tr>
+        <tr v-if="this.transactions.length === 0">
+          <td colspan="5" class="text-center">No Transactions</td>
+        </tr>
         </tbody>
       </table>
     </div>

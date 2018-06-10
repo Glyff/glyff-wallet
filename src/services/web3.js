@@ -17,13 +17,16 @@ export const connect = () => {
     const provider = new web3.providers.HttpProvider('http://' + config.node.host + ':' + config.node.port)
     web3.setProvider(provider)
 
-    if (web3.isConnected) {
+    // Workaround to check if is connected asyncronously
+    web3.currentProvider.sendAsync({id: 9999999999, jsonrpc: '2.0', method: 'net_listening', params: []}, (err, result) => {
+      if (err) {
+        debug('Web3 connection error')
+        return reject(err)
+      }
+
       debug('Web3  connected!')
-      resolve()
-    } else {
-      debug('Web3 connection error')
-      reject(new Error('Web3 connection error'))
-    }
+      resolve(result)
+    })
   })
 }
 

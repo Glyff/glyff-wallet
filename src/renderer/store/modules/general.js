@@ -1,5 +1,6 @@
 import co from 'co'
 import BigNumber from 'bignumber.js'
+import {connect as web3Connect} from '../../../services/web3'
 import startup from '../../../services/startup'
 
 /*
@@ -10,6 +11,8 @@ const state = {
 
   appStarting: true,
   startError: null,
+  connectionError: null,
+
   installation: false,
   filesCorrupted: false,
 
@@ -63,10 +66,28 @@ const getters = {
  */
 const actions = {
 
+  connect ({commit, dispatch}) {
+    commit('CONNECT')
+
+    return co(function* () {
+      let connected = false
+      while (! connected) {
+        try {
+          yield web3Connect()
+          commit('CONNECT_OK')
+          connected = true
+        } catch (e) {
+          commit('CONNECT_FAIL', 'Could not connect to the node, retrying..')
+          yield new Promise(resolve => setTimeout(resolve, 3000)) // Just wait 3 seconds
+        }
+      }
+    })
+  },
+
   start ({commit}) {
     commit('START')
 
-    co(function* () {
+    return co(function* () {
       // Use startup service
       const data = yield startup()
       commit('START_OK', data)
@@ -99,6 +120,19 @@ const mutations = {
     state.appStarting = false
     state.globalLoading = false
     state.startError = error
+  },
+
+  CONNECT (state) {
+    state.globalLoading = true
+  },
+
+  CONNECT_OK (state) {
+    state.connectionError = null
+    state.globalLoading = false
+  },
+
+  CONNECT_FAIL (state, error) {
+    state.connectionError = error
   },
 
 }

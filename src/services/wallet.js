@@ -117,7 +117,7 @@ export default {
         return reject(new Error('Selected account is locked'))
       }
 
-      const balance = tokenContract.balanceOf(account.address);
+      const balance = tokenContract.balanceOf(account.address)
 
       if (balance.isLessThan(amount)) {
         return reject(new Error('Not enough balance to shield'))

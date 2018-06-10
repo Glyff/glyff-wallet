@@ -13,7 +13,7 @@ export default {
   appPath: process.cwd(),
 
   token: {
-    address: '0x0a54a5237dd535de0e67d3c12cfc5bcd2cf3e917',
+    address: '0x2f02f456c04b3597459fea1efcf7cdb8cac22475',
     abi: require('./token_abi'),
   },
 

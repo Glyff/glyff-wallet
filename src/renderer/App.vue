@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import co from 'co'
 import {mapActions} from 'vuex'
 import Layout from './components/Layout/Layout'
 
@@ -16,11 +17,15 @@ export default {
   },
 
   mounted () {
-    this.startApp()
+    co(function* () {
+      yield this.connect()
+      yield this.startApp()
+    }.bind(this))
   },
 
   methods: {
     ...mapActions({
+      connect: 'general/connect',
       startApp: 'general/start',
     }),
   },

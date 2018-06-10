@@ -7335,6 +7335,12 @@ uglifyjs-webpack-plugin@^0.4.6:
     uglify-js "^2.8.29"
     webpack-sources "^1.0.1"
 
+uiv@^0.23.1:
+  version "0.23.1"
+  resolved "https://registry.yarnpkg.com/uiv/-/uiv-0.23.1.tgz#03ed7d14c90a556231879a4001b9f84c24beba16"
+  dependencies:
+    vue-functional-data-merge "^2.0.3"
+
 union-value@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/union-value/-/union-value-1.0.0.tgz#5c71c34cb5bad5dcebe3ea0cd08207ba5aa1aea4"
@@ -7531,6 +7537,10 @@ vm-browserify@0.0.4:
 vue-electron@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/vue-electron/-/vue-electron-1.0.6.tgz#e798e03180b8933539defe31f92e53b9242b9406"
+
+vue-functional-data-merge@^2.0.3:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/vue-functional-data-merge/-/vue-functional-data-merge-2.0.6.tgz#f08055adfb92458debcf2ad10c3aa712277f7fc2"
 
 vue-hot-reload-api@^2.2.0:
   version "2.3.0"

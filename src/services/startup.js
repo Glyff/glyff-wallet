@@ -4,7 +4,7 @@
 
 import fs from 'fs-extra'
 import co from 'co'
-import web3, {connect as web3Connect, isUnlocked} from './web3'
+import web3, {isUnlocked} from './web3'
 import config from '../config'
 import {loadTrackers} from './tracker'
 // import watchToken from './blockchain'
@@ -41,8 +41,6 @@ export default function () {
       debug('Some of required files are missing!')
       return {filesCorrupted: true}
     }
-
-    yield web3Connect()
 
     const oToken = yield fs.readJson(config.homeDir + 'default_token.json')
     const tokenContract = web3.eth.contract(oToken.abi).at(oToken.address)
