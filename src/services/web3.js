@@ -46,4 +46,21 @@ export const isUnlocked = account => {
   })
 }
 
+/**
+ * Unlock account
+ *
+ * @param {string} address
+ * @param {string} password
+ * @return {Promise<any>}
+ */
+export const unlockAccount = (address, password) => {
+  debug('unlock', {address})
+  return new Promise((resolve, reject) => {
+    web3.personal.unlockAccount(address, password, 9999, function (err, result) {
+      debug('unlock:resolve', err + '')
+      err ? reject(err) : resolve()
+    })
+  })
+}
+
 export default web3
