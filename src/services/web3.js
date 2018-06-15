@@ -58,7 +58,7 @@ export const unlockAccount = (address, password) => {
   return new Promise((resolve, reject) => {
     web3.personal.unlockAccount(address, password, 9999, function (err, result) {
       debug('unlock:resolve', err + '')
-      err ? reject(err) : resolve()
+      err ? reject(err) : resolve(result)
     })
   })
 }

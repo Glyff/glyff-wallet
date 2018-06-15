@@ -1,6 +1,8 @@
 <template>
   <div class="container-fluid">
-    <!--<div class="loading-overlay" v-if="globalLoading">Loading...</div>-->
+    <div class="loading-overlay" v-if="globalLoading">
+      <grid-loader></grid-loader>
+    </div>
     <div class="row">
       <div id="left-side" class="col-md-3">
         <sidebar></sidebar>
@@ -22,11 +24,13 @@
 import {Modal} from 'uiv'
 import {mapState} from 'vuex'
 import Sidebar from './Sidebar'
+import GridLoader from 'vue-spinner/src/GridLoader.vue'
 
 export default {
   components: {
     Sidebar,
     Modal,
+    GridLoader,
   },
 
   data () {

@@ -46,12 +46,17 @@ export default function () {
     const tokenContract = web3.eth.contract(oToken.abi).at(oToken.address)
     // watchToken(tokenContract)
 
-    let [accounts, stBuffer, notesBuffer, transactions] = yield [
-      fs.readJson(config.homeDir + 'accounts.json'),
-      fs.readJson(config.homeDir + 'scache.json'),
-      fs.readJson(config.homeDir + 'cache.json'),
-      fs.readJson(config.homeDir + 'transactions.json'),
-    ]
+    try {
+      var [accounts, stBuffer, notesBuffer, transactions] = yield [
+        fs.readJson(config.homeDir + 'accounts.json'),
+        fs.readJson(config.homeDir + 'scache.json'),
+        fs.readJson(config.homeDir + 'cache.json'),
+        fs.readJson(config.homeDir + 'transactions.json'),
+      ]
+    } catch (e) {
+      debug('Some files are corrupted!')
+      return {filesCorrupted: true}
+    }
 
     // Check if accounts are locked (asyncronously)
     accounts = yield accounts.map(a => {

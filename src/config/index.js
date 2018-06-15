@@ -4,7 +4,7 @@ export default {
 
   // Node settings
   node: {
-    host: '185.141.24.38',
+    host: '10.10.4.20',
     port: 18545,
   },
 
@@ -18,6 +18,9 @@ export default {
   },
 
   unshieldGas: 125000,
+
+  /** {Number} The number of max unspent notes outputs that can be unshielded for a transaction */
+  maxUnshieldings: 6,
 
   version: require('../../package.json').version,
 }

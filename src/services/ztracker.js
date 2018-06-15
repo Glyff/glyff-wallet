@@ -12,140 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ztracker = function () {}
-
-ztracker.prototype.shield = function (ztoken, value, sel, tracker = null, cb) {
-  var _t
-  if (tracker !== null) {
-    _t = tracker
-  } else {
-    _t = trackers[selectedTracker]
-  }
-
-  var rho = web3.zsl.getRandomness()
-  var pk = _t.a_pk
-
-  console.log('***************************************************************')
-  console.log('[*] Generating proof for shielding - value : ' + value)
-
-  var start = new Date()
-
-  var result = web3.zsl.createShielding(rho, pk, value)
-  var elapsed = new Date() - start
-
-  console.log('[*] Generated in ' + elapsed / 1000 + ' secs')
-
-  $('#ShieldElapsedTime').html(' Done in ' + (elapsed / 1000).toString() + ' seconds. Waiting for contract event ... ')
-
-  showShieldProgressBar()
-  shieldBgTaskInProgress = true
-
-  var uuid = web3.toHex(web3.sha3(result.cm, {encoding: 'hex'}))
-  var note = {}
-  note.rho = rho
-  note.value = value
-  note.uuid = uuid
-  note.ztoken = ztoken.address
-  note.confirmed = false
-  note.account = sel
-  note.tracker = _t.id
-
-  notesBuffer.push(note)
-  saveFile(p + 'cache.json', JSON.stringify(notesBuffer))
-
-  ztoken.shield(result.proof, result.send_nf, result.cm, value,
-
-    {from: sel, gas: 200000},
-
-    function (error, result) {
-      if (! error) {
-        $('#shieldBtn').prop('disabled', false)
-        cb(note.uuid)
-      } else {
-        console.log(error)
-
-        $('#shieldModalErrMsg').fadeIn('slow')
-        $('#shieldModalErrMsg').html(error)
-        $('#shieldModalErrMsg').fadeOut('slow')
-        $('#shieldBtn').prop('disabled', false)
-        cb(false)
-      }
-    })
-
-  // return "Waiting for log event...";
-}
-
-ztracker.prototype.unshield = function (uuid, tracker = null, cb = null) {
-  var t
-  var account
-  var found = false
-
-  if (tracker !== null) {
-    t = tracker
-  } else {
-    t = trackers[selectedTracker]
-    account = accounts[selectedAcct].address
-  }
-
-  for (var i = 0; i < t.notes.length; i++) {
-    if (t.notes[i].uuid == uuid) {
-      note = t.notes[i]
-      account = t.notes[uuid].account
-      found = true
-    }
-  }
-
-  if (found) {
-    var note = t.notes[uuid]
-    var a = note.ztoken
-    var ztoken = tokenContract // ztoken_abi.at(a);
-
-    // console.log(JSON.stringify(note));
-
-    var cm = web3.zsl.getCommitment(note.rho, t.a_pk, note.value)
-    var witnesses = ztoken.getWitness(cm)
-    var treeIndex = parseInt(witnesses[0])
-    var authPath = witnesses[1]
-
-    console.log('***************************************************************')
-    console.log('[*] Generating proof for unshielding')
-
-    var start = new Date()
-
-    unshieldBgTaskInProgress = true
-    showUnShieldProgressBar()
-
-    var result = web3.zsl.createUnshielding(note.rho, t.a_sk, note.value, treeIndex, authPath, function (error, result) {
-      console.log(error + ' / ' + JSON.stringify(result))
-
-      var elapsed = new Date() - start
-
-      console.log('[*] Generated in ' + elapsed / 1000 + ' secs')
-
-      $('#UnshieldElapsedTime').html(' Done in ' + (elapsed / 1000).toString() + ' seconds. Waiting for contract event ... ')
-
-      var rt = ztoken.root()
-
-      ztoken.unshield(result.proof,
-        result.spend_nf,
-        cm, rt,
-        note.value,
-        {from: accounts[selectedAcct].address, gas: unshieldGas},
-
-        function (error, result) {
-          if (! error) {
-            note.confirmed = false
-            cb(false, result)
-          } else {
-            unshieldBgTaskInProgress = false
-            cb(error, null)
-          }
-        })
-    })
-  }
-}
-
-ztracker.prototype.list = function (ztoken, amount) {
+export const list = (ztoken, amount) => {
   var result = []
   var name = ztoken.name()
   var addr = ztoken.address
@@ -165,7 +32,7 @@ ztracker.prototype.list = function (ztoken, amount) {
   console.log('***************************************************************')
 }
 
-ztracker.prototype.balance = function (ztoken) {
+export const balance = (ztoken) => {
   var result = 0
   var name = ztoken.name()
   var addr = ztoken.address
@@ -180,7 +47,7 @@ ztracker.prototype.balance = function (ztoken) {
   console.log('***************************************************************')
 }
 
-ztracker.prototype.sendTx = function (ztoken, uuid, tIndex, amount, recipient_apk, cb) {
+export const sendTx = (ztoken, uuid, tIndex, amount, recipient_apk, cb) => {
   var blob = null
   var empty_uncles = ['0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100', '0x8000000000000000000000000000000000000000000000000000000000000100']
   var note = trackers[tIndex].notes[uuid]

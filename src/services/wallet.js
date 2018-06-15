@@ -1,11 +1,11 @@
 import web3 from './web3'
 import uuid from 'node-uuid'
 import BigNumber from 'bignumber.js'
+import ethers from 'ethers'
 import config from '../config'
 import store from '../renderer/store'
 
 const debug = require('debug')('wallet')
-
 
 /**
  * Create a new wallet
@@ -104,14 +104,37 @@ export const makeTx = (txId, direction, amount, from, to, type, ts = null) => {
 }
 
 /**
+ * Send amount to address
+ *
+ * @param {{address: string}} account
+ * @param {string} toAddress
+ * @param {BigNumber} amount
+ * @param {BigNumber} gasPrice
+ * @return {Promise<any>}
+ */
+export const sendAmount = (account, toAddress, amount, gasPrice) => {
+  return new Promise((resolve, reject) => {
+    web3.eth.sendTransaction({
+      from: ethers.utils.getAddress(account.address),
+      to: ethers.utils.getAddress(toAddress),
+      value: web3.toWei(amount),
+      gasPrice: gasPrice,
+      gasLimit: 21000
+    }, function(err, result) {
+      err ? reject(err) : resolve(result)
+    })
+  })
+}
+
+/**
  * Shield
  *
- * @param {BigNumber} amount
  * @param account
+ * @param {BigNumber} amount
  * @param tracker
  * @param tokenContract
  */
-export const shield = (amount, account, tracker, tokenContract) => {
+export const shield = (account, amount, tracker, tokenContract) => {
   return new Promise((resolve, reject) => {
     if (account.locked) {
       return reject(new Error('Selected account is locked'))
@@ -144,12 +167,12 @@ export const shield = (amount, account, tracker, tokenContract) => {
 /**
  * Unshield
  *
- * @param amount
  * @param account
+ * @param {BigNumber} amount
  * @param tracker
  * @return {Promise<any>}
  */
-export const unshield = (amount, account, tracker) => {
+export const unshield = (account, amount, tracker) => {
   return new Promise((resolve, reject) => {
     if (account.locked) {
       return reject(new Error('Selected account is locked'))
@@ -169,4 +192,3 @@ export const unshield = (amount, account, tracker) => {
     })
   })
 }
-
