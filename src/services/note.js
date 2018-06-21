@@ -1,6 +1,5 @@
 import web3 from './web3'
-import orderBy from 'lodash-es/orderBy'
-import sumBy from 'lodash-es/sumBy'
+import _ from 'lodash'
 import co from 'co'
 import config from '../config'
 
@@ -15,13 +14,13 @@ const debug = require('debug')('note')
  * @param tokenContract
  */
 const mergeNotes = (tracker, amount, account, tokenContract) => {
-  const sortedNotes = orderBy(tracker.notes, ['value'], ['asc'])
+  const sortedNotes = _.orderBy(tracker.notes, ['value'], ['asc'])
   const notes = sortedNotes.find(n => n.account === account.address)
 
   const unspent = searchUTXO(notes, amount)
 
   // TODO values in notes will be stored as BigNumber, use sum method for BigNumber
-  const total = web3.fromWei(new BigNumber(sumBy(unspent, 'value'), 'glyff'))
+  const total = web3.fromWei(new BigNumber(_.sumBy(unspent, 'value'), 'glyff'))
   const change = total.minus(amount)
   debug('total filtered : ' + total.toString() + ' + change : ' + change.toString())
 

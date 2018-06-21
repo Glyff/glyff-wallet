@@ -1,7 +1,7 @@
 import co from 'co'
 import BigNumber from 'bignumber.js'
-import {connect as web3Connect} from '../../../services/web3'
-import startup from '../../../services/startup'
+import {connect as web3Connect} from '../../services/web3'
+import startup from '../../services/startup'
 
 /*
  * State

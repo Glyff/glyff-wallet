@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import path from 'path'
 import co from 'co'
-import isEmpty from 'lodash-es/isEmpty'
+import _ from 'lodash'
 
 /**
  * Find and load all saved trackers (asyncronously)
@@ -18,6 +18,6 @@ export const loadTrackers = (dir) => {
       return fs.readJson(path.resolve(dir, file))
     })
 
-    return data.filter(i => ! isEmpty(i)) // Filter empty objects
+    return data.filter(i => ! _.isEmpty(i)) // Filter empty objects
   })
 }

@@ -120,7 +120,7 @@ export const sendAmount = (account, toAddress, amount, gasPrice) => {
       value: web3.toWei(amount),
       gasPrice: gasPrice,
       gasLimit: 21000
-    }, function(err, result) {
+    }, (err, result) => {
       err ? reject(err) : resolve(result)
     })
   })

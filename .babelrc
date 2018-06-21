@@ -4,7 +4,7 @@
     "main": {
       "presets": [
         ["env", {
-          "targets": { "node": 7 }
+          "targets": { "node": 8 }
         }],
         "stage-0"
       ]
@@ -24,6 +24,9 @@
         }],
         "stage-0"
       ]
+    },
+    "test": {
+      "plugins": ["transform-es2015-modules-commonjs"]
     }
   },
   "plugins": ["transform-runtime"]

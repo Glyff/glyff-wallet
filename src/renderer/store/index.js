@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import createLogger from 'vuex/dist/logger'
-import modules from './modules'
+import general from './general'
 
 Vue.use(Vuex)
 
@@ -12,7 +12,9 @@ const plugins = []
 if (debug) plugins.push(createLogger())
 
 export default new Vuex.Store({
-  modules,
+  modules: {
+    general,
+  },
   strict: ! debug,
   plugins,
 })
