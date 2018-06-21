@@ -1,5 +1,5 @@
 import web3 from './web3'
-import uuid from 'node-uuid'
+import uuid from 'uuid'
 import BigNumber from 'bignumber.js'
 import ethers from 'ethers'
 import config from '../config'
