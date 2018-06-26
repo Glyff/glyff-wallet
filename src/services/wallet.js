@@ -4,6 +4,7 @@ import BigNumber from 'bignumber.js'
 import ethers from 'ethers'
 import config from '../config'
 import store from '../renderer/store'
+import {shieldNote} from './note'
 
 const debug = require('debug')('wallet')
 
@@ -132,15 +133,15 @@ export const sendAmount = (account, toAddress, amount, gasPrice) => {
  * @param account
  * @param {BigNumber} amount
  * @param tracker
- * @param tokenContract
+ * @param zToken
  */
-export const shield = (account, amount, tracker, tokenContract) => {
+export const shield = (account, amount, tracker, zToken) => {
   return new Promise((resolve, reject) => {
     if (account.locked) {
       return reject(new Error('Selected account is locked'))
     }
 
-    const balance = tokenContract.balanceOf(account.address)
+    const balance = zToken.balanceOf(account.address)
 
     if (balance.isLessThan(amount)) {
       return reject(new Error('Not enough balance to shield'))
@@ -156,10 +157,9 @@ export const shield = (account, amount, tracker, tokenContract) => {
         return reject(new Error('Insufficient funds for gas + price'))
       }
 
-      ztracker.shield(tokenContract, amount, account.address, tracker, function (err, result) {
-        if (err) return reject(new Error(err))
-        resolve(result)
-      })
+      shieldNote(tracker, amount, account.address, zToken)
+        .then(() => resolve())
+        .catch(err => reject(err))
     })
   })
 }

@@ -1,7 +1,10 @@
-import web3 from './web3'
+import web3, {createUnshielding, getGasPrice} from './web3'
 import _ from 'lodash'
 import co from 'co'
 import config from '../config'
+import NoteError from '../errors/note-error'
+import BalanceError from '../errors/balance-error'
+import {makeTx} from './wallet'
 
 const debug = require('debug')('note')
 
@@ -13,7 +16,7 @@ const debug = require('debug')('note')
  * @param account
  * @param tokenContract
  */
-const mergeNotes = (tracker, amount, account, tokenContract) => {
+export const mergeNotes = (tracker, amount, account, tokenContract) => {
   const sortedNotes = _.orderBy(tracker.notes, ['value'], ['asc'])
   const notes = sortedNotes.find(n => n.account === account.address)
 
@@ -35,27 +38,8 @@ const mergeNotes = (tracker, amount, account, tokenContract) => {
       return unshieldNote(unspent, tracker, account.address, tokenContract)
     })
 
-    const note = yield shieldNote(tracker, amount, account.address, tokenContract)
-
-    return note
+    return yield shieldNote(tracker, amount, account.address, tokenContract)
   })
-}
-
-/**
- * Search unspent transactions outputs
- *
- * @param {array} notes
- * @param {BigNumber} amount
- * @return {array}
- */
-const searchUTXO = (notes, amount) => {
-  // TODO
-
-  // Should throw exception if can't find appropriate set of outputs
-
-  // if (found.length === 0) {
-  //   throw new NoteError('No unspent notes were found', 'NO_UNSPENT')
-  // }
 }
 
 /**
@@ -67,20 +51,13 @@ const searchUTXO = (notes, amount) => {
  * @param tokenContract
  * @return {Promise<any>}
  */
-const unshieldNote = (note, tracker, address, tokenContract) => {
+export const unshieldNote = (note, tracker, address, tokenContract) => {
   return new Promise((resolve, reject) => {
     const commitment = web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value)
-    const witnesses = tokenContract.getWitness(commitment)
-    const treeIndex = parseInt(witnesses[0])
-    const authPath = witnesses[1]
-
-    debug('[*] Generating proof for unshielding')
-
-    web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value, treeIndex, authPath, (error, result) => {
-      debug('[*] Generating finished')
+    createUnshielding(note, tracker, tokenContract, commitment).then(unshielding => {
       const root = tokenContract.root()
 
-      tokenContract.unshield(result.proof, result.spend_nf, commitment, root, note.value, {
+      tokenContract.unshield(unshielding.proof, unshielding.spend_nf, commitment, root, note.value, {
         from: address,
         gas: config.unshieldGas
       }, function (error, result) {
@@ -99,7 +76,7 @@ const unshieldNote = (note, tracker, address, tokenContract) => {
  * @param ztoken
  * @return {Promise<any>}
  */
-const shieldNote = (tracker, value, address, ztoken) => {
+export const shieldNote = (tracker, value, address, ztoken) => {
   return new Promise((resolve, reject) => {
     const rho = web3.zsl.getRandomness()
 
@@ -122,4 +99,84 @@ const shieldNote = (tracker, value, address, ztoken) => {
       error ? reject(error) : resolve(note)
     })
   })
+}
+
+/**
+ * Reset notes
+ *
+ * @param tracker
+ * @param account
+ * @param tBalance
+ * @param tokenContract
+ */
+export const unshieldAllNotes = (tracker, account, tBalance, tokenContract) => {
+  return new Promise((resolve, reject) => {
+    getGasPrice().then(gasPrice => {
+      if (tBalance.isLessThan(gasPrice.multipliedBy(tracker.notes.length))) {
+        reject(new BalanceError('Not enough balance to unshield all notes'))
+      }
+
+      co(function* () {
+        // Simultaneously unshield all notes (async)
+        yield tracker.notes.map(note => {
+          return unshieldNote(note, tracker, account.address, tokenContract)
+        })
+
+        resolve()
+      }).catch(err => reject(err))
+    })
+  })
+}
+
+/**
+ * Consolidate note
+ *
+ * @param tracker
+ * @param note
+ * @param transactionHash
+ * @param blockNumber
+ * @return {{}}
+ */
+export const consolidateNote = (tracker, note, transactionHash, blockNumber) => {
+  return makeTx(transactionHash, 'inbound', note.value, note.tracker, tracker.zaddr, 'S', web3.eth.getBlock(blockNumber).timestamp)
+}
+
+/**
+ * Create note
+ *
+ * @param tracker
+ * @param rho
+ * @param {BigNumber} value
+ * @param address
+ * @param tokenContract
+ */
+export const createNote = (tracker, rho, value, address, tokenContract) => {
+  const pk = tracker.a_pk;
+  const cm = web3.zsl.getCommitment(rho, pk, value);
+
+  return {
+    rho,
+    value,
+    account: address,
+    confirmed: true,
+    ztoken: tokenContract.address,
+    uuid: web3.toHex(web3.sha3(cm, {encoding: 'hex'})),
+  }
+}
+
+/**
+ * Search unspent transactions outputs
+ *
+ * @param {array} notes
+ * @param {BigNumber} amount
+ * @return {array}
+ */
+export const searchUTXO = (notes, amount) => {
+  // TODO
+
+  // Should throw exception if can't find appropriate set of outputs
+
+  // if (found.length === 0) {
+  //   throw new NoteError('No unspent notes were found', 'NO_UNSPENT')
+  // }
 }

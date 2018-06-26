@@ -63,4 +63,42 @@ export const unlockAccount = (address, password) => {
   })
 }
 
+/**
+ * Get gas price
+ *
+ * @return {Promise<any>}
+ */
+export const getGasPrice = () => {
+  return new Promise((resolve, reject) => {
+    web3.eth.getGasPrice((err, res) => {
+      if (err) reject(err)
+      resolve(new BigNumber(res))
+    })
+  })
+}
+
+/**
+ * Create unshielding
+ *
+ * @param note
+ * @param tracker
+ * @param zTracker
+ * @param commitment
+ * @return {Promise<any>}
+ */
+export const createUnshielding = (note, tracker, zTracker, commitment) => {
+  return new Promise((resolve, reject) => {
+    debug('[*] Generating proof for unshielding')
+    const witnesses = zTracker.getWitness(commitment)
+    const treeIndex = parseInt(witnesses[0])
+    const authPath = witnesses[1]
+
+    web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value, treeIndex, authPath, (error, result) => {
+      if (error) reject(error)
+      debug('[*] Generating finished')
+      resolve(result)
+    })
+  })
+}
+
 export default web3
