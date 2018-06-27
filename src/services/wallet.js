@@ -1,10 +1,11 @@
-import web3 from './web3'
+import web3, {getGasPrice} from './web3'
 import uuid from 'uuid'
 import BigNumber from 'bignumber.js'
+import co from 'co'
 import ethers from 'ethers'
 import config from '../config'
-import store from '../renderer/store'
 import {shieldNote} from './note'
+import WalletError from '../errors/wallet-error'
 
 const debug = require('debug')('wallet')
 
@@ -131,36 +132,27 @@ export const sendAmount = (account, toAddress, amount, gasPrice) => {
  * Shield
  *
  * @param account
+ * @param {BigNumber} tBalance
  * @param {BigNumber} amount
  * @param tracker
- * @param zToken
+ * @param tokenContract
  */
-export const shield = (account, amount, tracker, zToken) => {
-  return new Promise((resolve, reject) => {
-    if (account.locked) {
-      return reject(new Error('Selected account is locked'))
-    }
-
-    const balance = zToken.balanceOf(account.address)
-
+export const shield = (account, tBalance, amount, tracker, tokenContract) => {
+  return co(function* () {
+    const balance = tokenContract.balanceOf(account.address)
     if (balance.isLessThan(amount)) {
-      return reject(new Error('Not enough balance to shield'))
+      throw new WalletError('Not enough balance to shield', 'NOT_ENOUGH_S_BALANCE')
     }
 
-    web3.eth.getGasPrice(function (err, res) {
-      if (err) return reject(new Error('Error estimating gas costs:' + err))
+    const gasPrice = yield getGasPrice()
+    const totalGas = gasPrice.multipliedBy(config.unshieldGas)
+    debug('Total shield cost is ' + web3.fromWei(totalGas, 'ether'))
 
-      const totalGas = new BigNumber(config.unshieldGas * res)
-      debug('Total shield cost is ' + web3.fromWei(totalGas, 'ether'))
+    if (tBalance.isLessThan(totalGas)) {
+      throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE')
+    }
 
-      if (store.getters('general/tBalance').isLessThan(totalGas)) {
-        return reject(new Error('Insufficient funds for gas + price'))
-      }
-
-      shieldNote(tracker, amount, account.address, zToken)
-        .then(() => resolve())
-        .catch(err => reject(err))
-    })
+    yield shieldNote(tracker, amount, account.address, tokenContract)
   })
 }
 
@@ -168,27 +160,21 @@ export const shield = (account, amount, tracker, zToken) => {
  * Unshield
  *
  * @param account
+ * @param {BigNumber} tBalance
  * @param {BigNumber} amount
  * @param tracker
  * @return {Promise<any>}
  */
-export const unshield = (account, amount, tracker) => {
-  return new Promise((resolve, reject) => {
-    if (account.locked) {
-      return reject(new Error('Selected account is locked'))
+export const unshield = (account, tBalance, amount, tracker) => {
+  return co(function* () {
+    const gasPrice = yield getGasPrice()
+    const totalGas = gasPrice.multipliedBy(config.unshieldGas)
+    debug('Total shield cost is ' + web3.fromWei(totalGas, 'ether'))
+
+    if (tBalance.isLessThan(totalGas)) {
+      throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE')
     }
 
-    web3.eth.getGasPrice(function (err, res) {
-      if (err) return reject(new Error('Error estimating gas costs:' + err))
-
-      const totalGas = new BigNumber(config.unshieldGas * res)
-      debug('Total unshield cost is ' + web3.fromWei(totalGas, 'ether'))
-
-      if (store.getters('general/tBalance').isLessThan(totalGas)) {
-        return reject(new Error('Insufficient funds for gas + price'))
-      }
-
-      // TODO not finished
-    })
+    // TODO not finished
   })
 }

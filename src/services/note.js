@@ -1,5 +1,6 @@
-import web3, {createUnshielding, getGasPrice} from './web3'
+import web3, {createUnshielding, getGasPrice, noteDecrypt} from './web3'
 import _ from 'lodash'
+import BigNumber from 'bignumber.js'
 import co from 'co'
 import config from '../config'
 import NoteError from '../errors/note-error'
@@ -22,8 +23,7 @@ export const mergeNotes = (tracker, amount, account, tokenContract) => {
 
   const unspent = searchUTXO(notes, amount)
 
-  // TODO values in notes will be stored as BigNumber, use sum method for BigNumber
-  const total = web3.fromWei(new BigNumber(_.sumBy(unspent, 'value'), 'glyff'))
+  const total = unspent.value
   const change = total.minus(amount)
   debug('total filtered : ' + total.toString() + ' + change : ' + change.toString())
 
@@ -35,7 +35,7 @@ export const mergeNotes = (tracker, amount, account, tokenContract) => {
   return co(function* () {
     // Simultaneously unshield all notes (async)
     yield unspent.map(u => {
-      return unshieldNote(unspent, tracker, account.address, tokenContract)
+      return unshieldNote(u, tracker, account.address, tokenContract)
     })
 
     return yield shieldNote(tracker, amount, account.address, tokenContract)
@@ -151,8 +151,8 @@ export const consolidateNote = (tracker, note, transactionHash, blockNumber) => 
  * @param tokenContract
  */
 export const createNote = (tracker, rho, value, address, tokenContract) => {
-  const pk = tracker.a_pk;
-  const cm = web3.zsl.getCommitment(rho, pk, value);
+  const pk = tracker.a_pk
+  const cm = web3.zsl.getCommitment(rho, pk, value)
 
   return {
     rho,
@@ -169,14 +169,66 @@ export const createNote = (tracker, rho, value, address, tokenContract) => {
  *
  * @param {array} notes
  * @param {BigNumber} amount
- * @return {array}
+ * @return {{utxos: Array, value: BigNumber}}
  */
 export const searchUTXO = (notes, amount) => {
-  // TODO
+  // Find exact match
+  const exactMatch = notes.find(n => n.value.isEqualTo(amount))
+  if (exactMatch) {
+    debug('Found exact note match')
+    return {
+      utxos: [exactMatch],
+      value: exactMatch.value,
+    }
+  }
 
-  // Should throw exception if can't find appropriate set of outputs
+  // To find smallest matching value
+  const sortedNotes = notes.slice().sort((a, b) => a.value.minus(b.value))
 
-  // if (found.length === 0) {
-  //   throw new NoteError('No unspent notes were found', 'NO_UNSPENT')
-  // }
+  // Find bigger match
+  const biggerMatch = sortedNotes.find(n => n.value.isGreaterThan(amount))
+  if (biggerMatch) {
+    debug('Found bigger note match')
+    return {
+      utxos: [biggerMatch],
+      value: biggerMatch.value,
+    }
+  }
+
+  // Find multiple until total is more or exact match
+  const foundNotes = []
+  let total = new BigNumber(0)
+  sortedNotes.forEach(n => {
+    if (total.isLessThan(amount)) {
+      foundNotes.push(n)
+      total = total.plus(n.value)
+    }
+  })
+
+  const totalFound = foundNotes.reduce((acc, n) => acc.plus(n.value), new BigNumber(0))
+  if (totalFound.isLessThan(amount)) {
+    throw new NoteError('Could not find enough unspent notes', 'NO_UNSPENT_FOUND')
+  }
+
+  return {
+    utxos: foundNotes,
+    value: totalFound,
+  }
+}
+
+/**
+ * Decrypt blob
+ *
+ * @param tracker
+ * @param blob
+ * @param address
+ * @param tokenContract
+ * @return {*}
+ */
+export const decryptBlob = (tracker, blob, address, tokenContract) => {
+  return co(function* () {
+    const decrypted = yield noteDecrypt(tracker.a_sk, blob)
+
+    return createNote(tracker, decrypted.out_rho_1, new BigNumber(decrypted.value), address, tokenContract)
+  })
 }

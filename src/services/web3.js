@@ -1,5 +1,6 @@
 import Web3 from 'web3'
 import ethers from 'ethers'
+import BigNumber from 'bignumber.js'
 import config from '../config'
 
 const debug = require('debug')('web3')
@@ -96,6 +97,21 @@ export const createUnshielding = (note, tracker, zTracker, commitment) => {
     web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value, treeIndex, authPath, (error, result) => {
       if (error) reject(error)
       debug('[*] Generating finished')
+      resolve(result)
+    })
+  })
+}
+
+/**
+ * Decrypt note
+ *
+ * @param sk
+ * @param blob
+ */
+export const noteDecrypt = (sk, blob) => {
+  return new Promise((resolve, reject) => {
+    web3.zsl.noteDecrypt(sk, blob, (err, result) => {
+      if (err) reject(err)
       resolve(result)
     })
   })
