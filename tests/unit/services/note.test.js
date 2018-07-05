@@ -19,7 +19,7 @@ describe('note.js service', () => {
       ]
 
       expect(note.searchUTXO(notes, new BigNumber(0.2))).toEqual({
-        utxos: [notes[1]],
+        unspent: [notes[1]],
         value: new BigNumber(0.2),
       })
     })
@@ -37,7 +37,7 @@ describe('note.js service', () => {
       ]
 
       expect(note.searchUTXO(notes, new BigNumber(0.2))).toEqual({
-        utxos: [notes[1]],
+        unspent: [notes[1]],
         value: new BigNumber(0.3),
       })
     })
@@ -55,7 +55,7 @@ describe('note.js service', () => {
       ]
 
       expect(note.searchUTXO(notes, new BigNumber(0.6))).toEqual({
-        utxos: notes,
+        unspent: notes,
         value: new BigNumber(0.7),
       })
     })

@@ -18,24 +18,21 @@ const debug = require('debug')('note')
  * @param tokenContract
  */
 export const mergeNotes = (tracker, amount, account, tokenContract) => {
-  const sortedNotes = _.orderBy(tracker.notes, ['value'], ['asc'])
-  const notes = sortedNotes.find(n => n.account === account.address)
+  const notes = tracker.notes.find(n => n.account === account.address) // Filter account notes
+  const {unspent, value} = searchUTXO(notes, amount)
 
-  const unspent = searchUTXO(notes, amount)
+  const change = value.minus(amount)
+  debug('Total filtered : ' + value + ' + change : ' + change)
 
-  const total = unspent.value
-  const change = total.minus(amount)
-  debug('total filtered : ' + total.toString() + ' + change : ' + change.toString())
-
-  if (unspent.length > config.maxUnshieldings) {
+  if (unspent.length > config.maxUnshieldings)
     throw new NoteError('Maximum unshieldings has been reached', 'MAX_UNSHIELDINGS')
-  }
-  debug('UTXO is ' + JSON.stringify(unspent))
+
+  debug('Unspend notes: ' + JSON.stringify(unspent))
 
   return co(function* () {
     // Simultaneously unshield all notes (async)
-    yield unspent.map(u => {
-      return unshieldNote(u, tracker, account.address, tokenContract)
+    yield unspent.map(note => {
+      return unshieldNote(note, tracker, account.address, tokenContract)
     })
 
     return yield shieldNote(tracker, amount, account.address, tokenContract)
@@ -157,7 +154,7 @@ export const createNote = (tracker, rho, value, address, tokenContract) => {
   return {
     rho,
     value,
-    account: address,
+    address,
     confirmed: true,
     ztoken: tokenContract.address,
     uuid: web3.toHex(web3.sha3(cm, {encoding: 'hex'})),
@@ -177,7 +174,7 @@ export const searchUTXO = (notes, amount) => {
   if (exactMatch) {
     debug('Found exact note match')
     return {
-      utxos: [exactMatch],
+      unspent: [exactMatch],
       value: exactMatch.value,
     }
   }
@@ -190,7 +187,7 @@ export const searchUTXO = (notes, amount) => {
   if (biggerMatch) {
     debug('Found bigger note match')
     return {
-      utxos: [biggerMatch],
+      unspent: [biggerMatch],
       value: biggerMatch.value,
     }
   }
@@ -211,7 +208,7 @@ export const searchUTXO = (notes, amount) => {
   }
 
   return {
-    utxos: foundNotes,
+    unspent: foundNotes,
     value: totalFound,
   }
 }
