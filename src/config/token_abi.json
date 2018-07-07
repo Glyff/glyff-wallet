@@ -271,13 +271,15 @@
   "payable": false,
   "stateMutability": "nonpayable",
   "type": "constructor"
-}, {"payable": false, "stateMutability": "nonpayable", "type": "fallback"}, {
+},
+{
+  "payable": false, "stateMutability": "nonpayable", "type": "fallback"}, {
   "anonymous": false,
-  "inputs": [{"indexed": true, "name": "from", "type": "address"}, {
-    "indexed": true,
-    "name": "to",
-    "type": "address"
-  }, {"indexed": false, "name": "value", "type": "uint256"}],
+  "inputs": [
+    {"indexed": true, "name": "from", "type": "address"},
+    {"indexed": true, "name": "to", "type": "address"},
+    {"indexed": false, "name": "value", "type": "uint256"}
+  ],
   "name": "LogTransfer",
   "type": "event"
 }, {

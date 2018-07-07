@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js'
 import co from 'co'
 import ethers from 'ethers'
 import config from '../config'
-import {mergeNotes, searchUTXO, shieldNote, unshieldNote} from './note'
+import {mergeNotes, searchUTXO, sendNote, shieldNote, unshieldNote} from './note'
 import WalletError from '../errors/wallet-error'
 
 const debug = require('debug')('wallet')
@@ -182,13 +182,14 @@ export const unshield = (account, tBalance, amount, tracker, tokenContract) => {
 /**
  * Send shielded amount
  *
- * @param account
- * @param {BigNumber} tBalance
  * @param {BigNumber} amount
  * @param recipientApk
+ * @param {BigNumber} tBalance
+ * @param account
  * @param tracker
+ * @param tokenContract
  */
-export const sendShielded = (account, tBalance, amount, recipientApk, tracker, tokenContract) => {
+export const sendShielded = (amount, recipientApk, tBalance, account, tracker, tokenContract) => {
   return co(function* () {
     const notes = tracker.notes.filter(n => n.address === account.address) // Get notes for address
     const shieldedBalance = notes.reduce((acc, n) => acc.plus(n.value), new BigNumber(0))
@@ -204,6 +205,6 @@ export const sendShielded = (account, tBalance, amount, recipientApk, tracker, t
 
     const note = yield mergeNotes(tracker, amount, account, tokenContract)
 
-    // TODO: sendNoteTx()
+    return yield sendNote(note, amount, recipientApk, account, tracker, tokenContract)
   })
 }

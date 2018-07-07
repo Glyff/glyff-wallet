@@ -1,4 +1,4 @@
-import web3, {createUnshielding, getGasPrice, noteDecrypt} from './web3'
+import web3, {createShieldedTransfer, createUnshielding, getGasPrice, noteDecrypt} from './web3'
 import _ from 'lodash'
 import BigNumber from 'bignumber.js'
 import co from 'co'
@@ -77,10 +77,10 @@ export const shieldNote = (tracker, value, address, ztoken) => {
   return new Promise((resolve, reject) => {
     const rho = web3.zsl.getRandomness()
 
-    debug('[*] Generating proof for shielding - value : ' + value)
+    debug('Generating proof for shielding - value : ' + value)
     // TODO is this sync method? is there async alternative?
     const result = web3.zsl.createShielding(rho, tracker.a_pk, value)
-    debug('[*] Generating finished')
+    debug('Generating finished')
 
     const note = {
       rho,
@@ -88,8 +88,8 @@ export const shieldNote = (tracker, value, address, ztoken) => {
       uuid: web3.toHex(web3.sha3(result.cm, {encoding: 'hex'})),
       ztoken: ztoken.address,
       confirmed: false,
-      account: address,
-      tracker: tracker.id,
+      address,
+      tracker: tracker.uuid,
     }
 
     ztoken.shield(result.proof, result.send_nf, result.cm, value, {from: address, gas: 200000}, (error, result) => {
@@ -154,10 +154,11 @@ export const createNote = (tracker, rho, value, address, tokenContract) => {
   return {
     rho,
     value,
+    uuid: web3.toHex(web3.sha3(cm, {encoding: 'hex'})),
     address,
     confirmed: true,
     ztoken: tokenContract.address,
-    uuid: web3.toHex(web3.sha3(cm, {encoding: 'hex'})),
+    tracker: tracker.uuid,
   }
 }
 
@@ -227,5 +228,83 @@ export const decryptBlob = (tracker, blob, address, tokenContract) => {
     const decrypted = yield noteDecrypt(tracker.a_sk, blob)
 
     return createNote(tracker, decrypted.out_rho_1, new BigNumber(decrypted.value), address, tokenContract)
+  })
+}
+
+/**
+ * Send shielded note to an address
+ */
+export const sendNote = (note, amount, recipientApk, account, tracker, tokenContract) => {
+  return new Promise((resolve, reject) => {
+    debug('Started sendNote')
+    if (note.value.isLessThan(amount)) {
+      return reject(new NoteError('Cannot transfer ' + amount + ' as note value of ' + note.value + ' is too small.', 'NOT_ENOUGH_NOTE_VALUE'))
+    }
+
+    const change = note.value.minus(amount)
+    const outRho1 = web3.zsl.getRandomness()
+    const outRho2 = web3.zsl.getRandomness()
+
+    createShieldedTransfer(note, tracker, amount, change, tokenContract, recipientApk, outRho1, outRho2)
+      .then(result => {
+
+        debug('Finishd sendNote' + JSON.stringify(result))
+
+        const n1 = {
+          value: amount,
+          rho: outRho1,
+          uuid: web3.toHex(web3.sha3(result.out_cm_1, {encoding: 'hex'})),
+          ztoken: tokenContract.address,
+          confirmed: false,
+          address: null,
+          tracker: null,
+        }
+
+        debug('Recipient receives note of ' + amount + ' ' + tokenContract.name())
+
+        let n2 = {}
+        if (change.isGreaterThan(0)) {
+          n2 = {
+            value: change,
+            rho: outRho2,
+            uuid: web3.toHex(web3.sha3(result.out_cm_2, {encoding: 'hex'})),
+            ztoken: tokenContract.address,
+            confirmed: false,
+            address: account.address(),
+            tracker: tracker.uuid,
+          }
+        }
+
+        debug('Sender receives change of ' + change + ' ' + tokenContract.name())
+        debug('Submit shielded transfer to z-contract...')
+
+        const o = {
+          n: note,
+          n1: n1,
+          n2: n2,
+          to: recipientApk,
+        }
+
+        tokenContract.shieldedTransfer(
+          result.proof,
+          tokenContract.root(),
+          result.in_spend_nf_1,
+          result.in_spend_nf_2,
+          result.out_send_nf_1,
+          result.out_send_nf_2,
+          result.out_cm_1,
+          result.out_cm_2,
+          result.blob, {
+            from: account.address,
+            gas: 5470000
+          },
+          function (err, result) {
+            debug('Completed shielded transfer')
+            if (err) reject (err)
+
+            resolve(result)
+          })
+
+      }).catch(err => reject(err))
   })
 }
