@@ -65,28 +65,23 @@ export const getNewAddress = (password) => {
  * @param ts
  */
 export const makeTx = (txId, direction, amount, from, to, type, ts = null) => {
-  const o = {}
+  let d
 
   if (ts !== null) {
-    const d = new Date(ts * 1000)
+    d = new Date(ts * 1000)
   } else {
-    const d = new Date()
+    d = new Date()
   }
 
-  o.txId = txId
-  o.direction = direction
-  o.amount = amount
-  o.from = from
-  o.to = to
-  o.type = type
-  o.date =
-    d.getUTCFullYear() + '-' +
-    d.getUTCMonth() + 1 + '-' +
-    d.getUTCDate() + ' ' +
-    d.getUTCHours() + ':' +
-    d.getUTCMinutes()
-
-  return o
+  return {
+    txId,
+    direction,
+    amount,
+    from,
+    to,
+    type,
+    date: d.getUTCFullYear() + '-' + d.getUTCMonth() + 1 + '-' + d.getUTCDate() + ' ' + d.getUTCHours() + ':' + d.getUTCMinutes()
+  }
 }
 
 /**
