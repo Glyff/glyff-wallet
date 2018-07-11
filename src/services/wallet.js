@@ -119,15 +119,13 @@ export const sendAmount = (account, toAddress, amount, gasPrice) => {
 export const shield = (account, tBalance, amount, tracker, tokenContract) => {
   return co(function* () {
     const sBalance = tokenContract.balanceOf(account.address)
-    if (sBalance.isLessThan(amount))
-      throw new WalletError('Not enough balance to shield', 'NOT_ENOUGH_S_BALANCE')
+    if (sBalance.isLessThan(amount)) { throw new WalletError('Not enough balance to shield', 'NOT_ENOUGH_S_BALANCE') }
 
     const gasPrice = yield getGasPrice()
     const totalGas = gasPrice.multipliedBy(config.unshieldGas)
-    debug('Total shield cost is ' + web3.fromWei(totalGas, 'ether'))
+    debug('Total shield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
 
-    if (tBalance.isLessThan(totalGas))
-      throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE')
+    if (tBalance.isLessThan(totalGas)) { throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE') }
 
     yield shieldNote(tracker, amount, account.address, tokenContract)
   })
@@ -147,16 +145,14 @@ export const unshield = (account, tBalance, amount, tracker, tokenContract) => {
   return co(function* () {
     const gasPrice = yield getGasPrice()
     const totalGas = gasPrice.multipliedBy(config.unshieldGas)
-    debug('Total shield cost is ' + web3.fromWei(totalGas, 'ether'))
+    debug('Total shield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
 
     // TODO: should check if it's enough gas to unshield all needed notes and shield the change afterwards
-    if (tBalance.isLessThan(totalGas))
-      throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE')
+    if (tBalance.isLessThan(totalGas)) { throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE') }
 
     const notes = tracker.notes.filter(n => n.address === account.address) // Get notes for address
     const totalShielded = notes.reduce((acc, n) => acc.plus(n.value), new BigNumber(0))
-    if (amount.isLessThan(totalShielded))
-      throw new WalletError('Not enough shielded balance', 'NOT_ENOUGH_SHIELDED')
+    if (amount.isLessThan(totalShielded)) { throw new WalletError('Not enough shielded balance', 'NOT_ENOUGH_SHIELDED') }
 
     const {unspent, value} = searchUTXO(notes, amount)
     const change = value.minus(amount)
@@ -189,14 +185,12 @@ export const sendShielded = (amount, recipientApk, tBalance, account, tracker, t
     const notes = tracker.notes.filter(n => n.address === account.address) // Get notes for address
     const shieldedBalance = notes.reduce((acc, n) => acc.plus(n.value), new BigNumber(0))
 
-    if (shieldedBalance.isLessThan(amount))
-      throw new WalletError('Not enough shielded balance, add some funds', 'NOT_ENOUGH_SHIELDED')
+    if (shieldedBalance.isLessThan(amount)) { throw new WalletError('Not enough shielded balance, add some funds', 'NOT_ENOUGH_SHIELDED') }
 
     const gasPrice = yield getGasPrice()
     const totalGas = gasPrice.multipliedBy(config.unshieldGas)
-    debug('Total shield cost is ' + web3.fromWei(totalGas, 'ether'))
-    if (tBalance.isLessThan(totalGas))
-      throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE')
+    debug('Total shield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
+    if (tBalance.isLessThan(totalGas)) { throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE') }
 
     const note = yield mergeNotes(tracker, amount, account, tokenContract)
 

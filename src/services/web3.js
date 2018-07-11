@@ -1,4 +1,4 @@
-import Web3 from 'web3'
+import Web3 from 'web3-zsl'
 import ethers from 'ethers'
 import BigNumber from 'bignumber.js'
 import config from '../config'
@@ -13,13 +13,13 @@ const web3 = new Web3()
  */
 export const connect = () => {
   return new Promise((resolve, reject) => {
-    if (web3.isConnected()) resolve()
+    // if (web3.isConnected()) resolve()
 
     const provider = new web3.providers.HttpProvider('http://' + config.node.host + ':' + config.node.port)
     web3.setProvider(provider)
 
     // Workaround to check if is connected asyncronously
-    web3.currentProvider.sendAsync({id: 9999999999, jsonrpc: '2.0', method: 'net_listening', params: []}, (err, result) => {
+    web3.currentProvider.send({id: 9999999999, jsonrpc: '2.0', method: 'net_listening', params: []}, (err, result) => {
       if (err) {
         debug('Web3 connection error')
         return reject(err)
@@ -40,7 +40,7 @@ export const isUnlocked = account => {
   debug('isUnlocked', {account})
   return new Promise((resolve, reject) => {
     // hack to check if an account is locked
-    web3.eth.sign(ethers.utils.getAddress(account.address), web3.sha3('test'), function (err, result) {
+    web3.eth.sign(ethers.utils.getAddress(account.address), web3.utils.sha3('test'), function (err, result) {
       debug('isUnlocked:resolve', err + '')
       resolve(! err)
     })

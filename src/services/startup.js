@@ -43,7 +43,7 @@ export default function () {
     }
 
     const oToken = yield fs.readJson(config.homeDir + 'default_token.json')
-    const tokenContract = web3.eth.contract(oToken.abi).at(oToken.address)
+    const tokenContract = new web3.eth.Contract(oToken.abi, oToken.address)
     // watchToken(tokenContract)
 
     try {

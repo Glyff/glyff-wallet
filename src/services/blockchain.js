@@ -3,7 +3,6 @@ export const syncChain = () => {
   // TODO
 }
 
-
 function checkPastEvents (tokenContract) {
   var events = tokenContract.allEvents({fromBlock: trackers[selectedTracker].lastBlock, toBlock: 'latest'})
 

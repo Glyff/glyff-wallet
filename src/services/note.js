@@ -24,8 +24,7 @@ export const mergeNotes = (tracker, amount, account, tokenContract) => {
   const change = value.minus(amount)
   debug('Total filtered : ' + value + ' + change : ' + change)
 
-  if (unspent.length > config.maxUnshieldings)
-    throw new NoteError('Maximum unshieldings has been reached', 'MAX_UNSHIELDINGS')
+  if (unspent.length > config.maxUnshieldings) { throw new NoteError('Maximum unshieldings has been reached', 'MAX_UNSHIELDINGS') }
 
   debug('Unspend notes: ' + JSON.stringify(unspent))
 
@@ -85,7 +84,7 @@ export const shieldNote = (tracker, value, address, ztoken) => {
     const note = {
       rho,
       value,
-      uuid: web3.toHex(web3.sha3(result.cm, {encoding: 'hex'})),
+      uuid: web3.toHex(web3.utils.sha3(result.cm, {encoding: 'hex'})),
       ztoken: ztoken.address,
       confirmed: false,
       address,
@@ -154,7 +153,7 @@ export const createNote = (tracker, rho, value, address, tokenContract) => {
   return {
     rho,
     value,
-    uuid: web3.toHex(web3.sha3(cm, {encoding: 'hex'})),
+    uuid: web3.toHex(web3.utils.sha3(cm, {encoding: 'hex'})),
     address,
     confirmed: true,
     ztoken: tokenContract.address,
@@ -247,13 +246,12 @@ export const sendNote = (note, amount, recipientApk, account, tracker, tokenCont
 
     createShieldedTransfer(note, tracker, amount, change, tokenContract, recipientApk, outRho1, outRho2)
       .then(result => {
-
         debug('Finishd sendNote' + JSON.stringify(result))
 
         const n1 = {
           value: amount,
           rho: outRho1,
-          uuid: web3.toHex(web3.sha3(result.out_cm_1, {encoding: 'hex'})),
+          uuid: web3.toHex(web3.utils.sha3(result.out_cm_1, {encoding: 'hex'})),
           ztoken: tokenContract.address,
           confirmed: false,
           address: null,
@@ -267,7 +265,7 @@ export const sendNote = (note, amount, recipientApk, account, tracker, tokenCont
           n2 = {
             value: change,
             rho: outRho2,
-            uuid: web3.toHex(web3.sha3(result.out_cm_2, {encoding: 'hex'})),
+            uuid: web3.toHex(web3.utils.sha3(result.out_cm_2, {encoding: 'hex'})),
             ztoken: tokenContract.address,
             confirmed: false,
             address: account.address(),
@@ -300,11 +298,10 @@ export const sendNote = (note, amount, recipientApk, account, tracker, tokenCont
           },
           function (err, result) {
             debug('Completed shielded transfer')
-            if (err) reject (err)
+            if (err) reject(err)
 
             resolve(result)
           })
-
       }).catch(err => reject(err))
   })
 }

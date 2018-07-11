@@ -70,7 +70,7 @@
     "vue-router": "^2.5.3",
     "vue-spinner": "^1.0.3",
     "vuex": "^2.3.1",
-    "web3": "git+ssh://git@gitlab.smartex.io:2200/glyff/web3.git"
+    "web3-zsl": "ssh://git@gitlab.smartex.io:2200/glyff/web3-zsl.git"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
