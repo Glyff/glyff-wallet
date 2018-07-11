@@ -1,5 +1,5 @@
 import co from 'co'
-import BigNumber from 'bignumber.js'
+import BN from 'bn.js'
 import {connect as web3Connect} from '../../services/web3'
 import startup from '../../services/startup'
 
@@ -38,7 +38,7 @@ const state = {
 const getters = {
 
   tBalance (state, getters) {
-    if (! getters.selectedAccount) return new BigNumber(0)
+    if (! getters.selectedAccount) return new BN(0)
 
     return getters.balanceForAddress(getters.selectedAccount.address)
   },
@@ -50,10 +50,10 @@ const getters = {
   },
 
   balanceForAddress: state => address => {
-    let balance = new BigNumber(0)
+    let balance = new BN(0)
     state.transactions.forEach(tx => {
-      if (tx.from === address) balance = balance.minus(tx.amount)
-      if (tx.to === address) balance = balance.plus(tx.amount)
+      if (tx.from === address) balance = balance.sub(tx.amount)
+      if (tx.to === address) balance = balance.add(tx.amount)
     })
 
     return balance

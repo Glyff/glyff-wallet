@@ -15,13 +15,13 @@ for (let i = currentBlock; i >= 0 && (n > 0 || bal > 0); --i) {
     if (block && block.transactions) {
       block.transactions.forEach(tx => {
         if (myAddr === tx.from) {
-          if (tx.from !== tx.to) { bal = bal.plus(tx.value) }
+          if (tx.from !== tx.to) { bal = bal.add(tx.value) }
           console.log(i, tx.from, tx.to, tx.value.toString(10))
           --n
         }
 
         if (myAddr === tx.to) {
-          if (tx.from !== tx.to) { bal = bal.minus(tx.value) }
+          if (tx.from !== tx.to) { bal = bal.sub(tx.value) }
           console.log(i, tx.from, tx.to, tx.value.toString(10))
         }
       })

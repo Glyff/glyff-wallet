@@ -1,6 +1,5 @@
 import web3, {createShieldedTransfer, createUnshielding, getGasPrice, noteDecrypt} from './web3'
-import _ from 'lodash'
-import BigNumber from 'bignumber.js'
+import BN from 'bn.js'
 import co from 'co'
 import config from '../config'
 import NoteError from '../errors/note-error'
@@ -13,7 +12,7 @@ const debug = require('debug')('note')
  * Merge notes
  *
  * @param {{}} tracker
- * @param {BigNumber} amount
+ * @param {BN} amount
  * @param account
  * @param tokenContract
  */
@@ -21,7 +20,7 @@ export const mergeNotes = (tracker, amount, account, tokenContract) => {
   const notes = tracker.notes.find(n => n.account === account.address) // Filter account notes
   const {unspent, value} = searchUTXO(notes, amount)
 
-  const change = value.minus(amount)
+  const change = value.sub(amount)
   debug('Total filtered : ' + value + ' + change : ' + change)
 
   if (unspent.length > config.maxUnshieldings) { throw new NoteError('Maximum unshieldings has been reached', 'MAX_UNSHIELDINGS') }
@@ -108,7 +107,7 @@ export const shieldNote = (tracker, value, address, ztoken) => {
 export const unshieldAllNotes = (tracker, account, tBalance, tokenContract) => {
   return new Promise((resolve, reject) => {
     getGasPrice().then(gasPrice => {
-      if (tBalance.isLessThan(gasPrice.multipliedBy(tracker.notes.length))) {
+      if (tBalance.lt(gasPrice.multipliedBy(tracker.notes.length))) {
         reject(new BalanceError('Not enough balance to unshield all notes'))
       }
 
@@ -142,7 +141,7 @@ export const consolidateNote = (tracker, note, transactionHash, blockNumber) => 
  *
  * @param tracker
  * @param rho
- * @param {BigNumber} value
+ * @param {BN} value
  * @param address
  * @param tokenContract
  */
@@ -165,8 +164,8 @@ export const createNote = (tracker, rho, value, address, tokenContract) => {
  * Search unspent transactions outputs
  *
  * @param {array} notes
- * @param {BigNumber} amount
- * @return {{utxos: Array, value: BigNumber}}
+ * @param {BN} amount
+ * @return {{utxos: Array, value: BN}}
  */
 export const searchUTXO = (notes, amount) => {
   // Find exact match
@@ -180,10 +179,10 @@ export const searchUTXO = (notes, amount) => {
   }
 
   // To find smallest matching value
-  const sortedNotes = notes.slice().sort((a, b) => a.value.minus(b.value))
+  const sortedNotes = notes.slice().sort((a, b) => a.value.sub(b.value))
 
   // Find bigger match
-  const biggerMatch = sortedNotes.find(n => n.value.isGreaterThan(amount))
+  const biggerMatch = sortedNotes.find(n => n.value.gt(amount))
   if (biggerMatch) {
     debug('Found bigger note match')
     return {
@@ -194,16 +193,16 @@ export const searchUTXO = (notes, amount) => {
 
   // Find multiple until total is more or exact match
   const foundNotes = []
-  let total = new BigNumber(0)
+  let total = new BN(0)
   sortedNotes.forEach(n => {
-    if (total.isLessThan(amount)) {
+    if (total.lt(amount)) {
       foundNotes.push(n)
-      total = total.plus(n.value)
+      total = total.add(n.value)
     }
   })
 
-  const totalFound = foundNotes.reduce((acc, n) => acc.plus(n.value), new BigNumber(0))
-  if (totalFound.isLessThan(amount)) {
+  const totalFound = foundNotes.reduce((acc, n) => acc.add(n.value), new BN(0))
+  if (totalFound.lt(amount)) {
     throw new NoteError('Could not find enough unspent notes', 'NO_UNSPENT_FOUND')
   }
 
@@ -224,9 +223,9 @@ export const searchUTXO = (notes, amount) => {
  */
 export const decryptBlob = (tracker, blob, address, tokenContract) => {
   return co(function* () {
-    const decrypted = yield noteDecrypt(tracker.a_sk, blob)
+    const decrypted = yield web3.zsl.noteDecrypt(tracker.a_sk, blob)
 
-    return createNote(tracker, decrypted.out_rho_1, new BigNumber(decrypted.value), address, tokenContract)
+    return createNote(tracker, decrypted.out_rho_1, new BN(decrypted.value), address, tokenContract)
   })
 }
 
@@ -236,11 +235,11 @@ export const decryptBlob = (tracker, blob, address, tokenContract) => {
 export const sendNote = (note, amount, recipientApk, account, tracker, tokenContract) => {
   return new Promise((resolve, reject) => {
     debug('Started sendNote')
-    if (note.value.isLessThan(amount)) {
+    if (note.value.lt(amount)) {
       return reject(new NoteError('Cannot transfer ' + amount + ' as note value of ' + note.value + ' is too small.', 'NOT_ENOUGH_NOTE_VALUE'))
     }
 
-    const change = note.value.minus(amount)
+    const change = note.value.sub(amount)
     const outRho1 = web3.zsl.getRandomness()
     const outRho2 = web3.zsl.getRandomness()
 
@@ -261,7 +260,7 @@ export const sendNote = (note, amount, recipientApk, account, tracker, tokenCont
         debug('Recipient receives note of ' + amount + ' ' + tokenContract.name())
 
         let n2 = {}
-        if (change.isGreaterThan(0)) {
+        if (change.gt(0)) {
           n2 = {
             value: change,
             rho: outRho2,
