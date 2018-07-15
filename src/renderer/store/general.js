@@ -1,13 +1,17 @@
 import co from 'co'
 import BN from 'bn.js'
 import {connect as web3Connect} from '../../services/web3'
+import bus from '../bus'
 import startup from '../../services/startup'
+import {checkPastEvents} from '../../services/blockchain'
 
 /*
  * State
  */
 const state = {
   globalLoading: true,
+
+  checkingPastEvents: true,
 
   appStarting: true,
   startError: null,
@@ -38,15 +42,21 @@ const state = {
 const getters = {
 
   tBalance (state, getters) {
-    if (! getters.selectedAccount) return new BN(0)
+    if (! getters.currentAccount) return new BN(0)
 
-    return getters.balanceForAddress(getters.selectedAccount.address)
+    return getters.balanceForAddress(getters.currentAccount.address)
   },
 
-  selectedAccount (state) {
+  currentAccount (state) {
     if (! state.accounts.length) return null
 
     return state.accounts[state.selectedAcctIdx]
+  },
+
+  currentTracker (state) {
+    if (! state.trackers.length) return null
+
+    return state.trackers[state.selectedTrackerIdx]
   },
 
   balanceForAddress: state => address => {
@@ -98,6 +108,19 @@ const actions = {
       })
   },
 
+  checkPastEvents ({commit, state, getters}) {
+    commit('CHECK_PAST_EVENTS')
+
+    return co(function* () {
+      const data = yield checkPastEvents(bus, getters.currentTracker, state.accounts, state.tokenContract)
+      commit('CHECK_PAST_EVENTS_OK', data)
+    })
+      .catch(error => {
+        commit('CHECK_PAST_EVENTS_FAIL', error)
+        throw error // Re-trow exception to let it be caught globally
+      })
+  },
+
 }
 
 /*
@@ -133,6 +156,18 @@ const mutations = {
 
   CONNECT_FAIL (state, error) {
     state.connectionError = error
+  },
+
+  CHECK_PAST_EVENTS (state) {
+    state.checkingPastEvents = true
+  },
+
+  CHECK_PAST_EVENTS_OK (state) {
+    state.checkingPastEvents = false
+  },
+
+  CHECK_PAST_EVENTS_FAIL (state, error) {
+    state.checkingPastEvents = false
   },
 
 }

@@ -20,6 +20,7 @@ export default {
     co(function* () {
       yield this.connect()
       yield this.startApp()
+      yield this.checkPastEvents()
     }.bind(this))
   },
 
@@ -27,6 +28,7 @@ export default {
     ...mapActions({
       connect: 'general/connect',
       startApp: 'general/start',
+      checkPastEvents: 'general/checkPastEvents',
     }),
   },
 }

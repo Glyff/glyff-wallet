@@ -1,4 +1,4 @@
-import web3, {createShieldedTransfer, createUnshielding, getGasPrice, noteDecrypt} from './web3'
+import web3, {createShieldedTransfer, createUnshielding, getGasPrice} from './web3'
 import BN from 'bn.js'
 import co from 'co'
 import config from '../config'
@@ -275,13 +275,6 @@ export const sendNote = (note, amount, recipientApk, account, tracker, tokenCont
         debug('Sender receives change of ' + change + ' ' + tokenContract.name())
         debug('Submit shielded transfer to z-contract...')
 
-        const o = {
-          n: note,
-          n1: n1,
-          n2: n2,
-          to: recipientApk,
-        }
-
         tokenContract.shieldedTransfer(
           result.proof,
           tokenContract.root(),
@@ -299,7 +292,14 @@ export const sendNote = (note, amount, recipientApk, account, tracker, tokenCont
             debug('Completed shielded transfer')
             if (err) reject(err)
 
-            resolve(result)
+            const shlddTx = {
+              n: note,
+              n1: n1,
+              n2: n2,
+              to: recipientApk,
+            }
+
+            resolve(result, shlddTx)
           })
       }).catch(err => reject(err))
   })
