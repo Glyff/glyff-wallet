@@ -9,6 +9,7 @@ import router from './router'
 import store from './store'
 import web3 from '../services/web3'
 import debug from 'debug'
+import './store/events-actions'
 
 if (! process.env.IS_WEB) Vue.use(require('vue-electron'))
 Vue.http = Vue.prototype.$http = axios

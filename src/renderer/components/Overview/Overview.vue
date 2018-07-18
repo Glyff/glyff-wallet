@@ -21,11 +21,11 @@
         </thead>
         <tbody>
         <tr v-for="tx in transactionsPage">
-          <td>{{ tx.txId }}</td>
+          <td>{{ tx.hash }}</td>
           <td>{{ tx.direction }}</td>
-          <td>{{ tx.amount | ether }}</td>
+          <td>{{ tx.amount | ether(tx.type.toLowerCase(), tx.type) }}</td>
           <td>{{ tx.type }}</td>
-          <td>{{ tx.date }}</td>
+          <td>{{ tx.date.format('YYYY-MM-DD HH:mm') }}</td>
         </tr>
         <tr v-if="this.transactions.length === 0">
           <td colspan="5" class="text-center">No Transactions</td>
@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapGetters} from 'vuex'
 import Balances from '../Layout/Balances'
 
 export default {
@@ -65,8 +65,9 @@ export default {
   },
 
   computed: {
-    ...mapState({
-      transactions: s => s.general.transactions,
+    ...mapGetters({
+      account: 'accounts/currentAccount',
+      transactions: 'accounts/currentAccountTransactions',
     }),
 
     totalPages () {
@@ -76,9 +77,7 @@ export default {
     },
 
     transactionsPage () {
-      const sorted = this.transactions.slice()
-        // Sort desc by date (just a string comparsion)
-        .sort((a, b) => b.date.localeCompare(a.date))
+      const sorted = this.transactions.slice().sort((a, b) => b - a)
 
       if (this.showAll) return sorted
 

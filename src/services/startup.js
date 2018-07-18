@@ -4,9 +4,9 @@
 
 import fs from 'fs-extra'
 import co from 'co'
-import web3, {isUnlocked} from './web3'
+import web3 from './web3'
 import config from '../config'
-import {loadTrackers} from './tracker'
+import StartupError from '../errors/startup-error'
 // import watchToken from './blockchain'
 
 const debug = require('debug')('startup')
@@ -34,48 +34,17 @@ export default function () {
   return co(function* () {
     if (! homeExists()) {
       debug('Home folder does not exist!')
-      return {installation: true}
+      throw new StartupError('Home folder does not exist!')
     }
 
     if (! allFilesExist()) {
       debug('Some of required files are missing!')
-      return {filesCorrupted: true}
+      throw new StartupError('Some of required files are missing!')
     }
 
     const oToken = yield fs.readJson(config.homeDir + 'default_token.json')
     const tokenContract = new web3.eth.Contract(oToken.abi, oToken.address)
-    // watchToken(tokenContract)
 
-    try {
-      var [accounts, stBuffer, notesBuffer, transactions] = yield [
-        fs.readJson(config.homeDir + 'accounts.json'),
-        fs.readJson(config.homeDir + 'scache.json'),
-        fs.readJson(config.homeDir + 'cache.json'),
-        fs.readJson(config.homeDir + 'transactions.json'),
-      ]
-    } catch (e) {
-      debug('Some files are corrupted!')
-      return {filesCorrupted: true}
-    }
-
-    // Check if accounts are locked (asyncronously)
-    accounts = yield accounts.map(a => {
-      return co(function* () {
-        a.unlocked = yield isUnlocked(a)
-        return a
-      })
-    })
-
-    const trackers = yield loadTrackers(config.homeDir)
-
-    return {
-      oToken,
-      tokenContract,
-      accounts,
-      stBuffer,
-      notesBuffer,
-      transactions,
-      trackers,
-    }
+    return {oToken, tokenContract}
   })
 }

@@ -20,7 +20,6 @@ export default {
     co(function* () {
       yield this.connect()
       yield this.startApp()
-      yield this.checkPastEvents()
     }.bind(this))
   },
 

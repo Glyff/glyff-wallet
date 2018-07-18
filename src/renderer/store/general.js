@@ -1,5 +1,4 @@
 import co from 'co'
-import BN from 'bn.js'
 import {connect as web3Connect} from '../../services/web3'
 import bus from '../bus'
 import startup from '../../services/startup'
@@ -22,18 +21,6 @@ const state = {
 
   oToken: null,
   tokenContract: null,
-
-  accounts: [], // Accounts list
-  stBuffer: [],
-  notesBuffer: [],
-  transactions: [],
-  trackers: [],
-
-  selectedAcctIdx: 0,
-  selectedTrackerIdx: 0,
-
-  tBalance: 0,
-  sBalance: 0,
 }
 
 /*
@@ -41,33 +28,7 @@ const state = {
  */
 const getters = {
 
-  tBalance (state, getters) {
-    if (! getters.currentAccount) return new BN(0)
-
-    return getters.balanceForAddress(getters.currentAccount.address)
-  },
-
-  currentAccount (state) {
-    if (! state.accounts.length) return null
-
-    return state.accounts[state.selectedAcctIdx]
-  },
-
-  currentTracker (state) {
-    if (! state.trackers.length) return null
-
-    return state.trackers[state.selectedTrackerIdx]
-  },
-
-  balanceForAddress: state => address => {
-    let balance = new BN(0)
-    state.transactions.forEach(tx => {
-      if (tx.from === address) balance = balance.sub(tx.amount)
-      if (tx.to === address) balance = balance.add(tx.amount)
-    })
-
-    return balance
-  },
+  //
 
 }
 
@@ -76,6 +37,13 @@ const getters = {
  */
 const actions = {
 
+  /**
+   * Connect to web3
+   *
+   * @param commit
+   * @param dispatch
+   * @return {*}
+   */
   connect ({commit, dispatch}) {
     commit('CONNECT')
 
@@ -94,13 +62,24 @@ const actions = {
     })
   },
 
-  start ({commit}) {
+  /**
+   * Perform app start sequence
+   *
+   * @param commit
+   * @param dispatch
+   * @return {*}
+   */
+  start ({commit, dispatch}) {
     commit('START')
 
     return co(function* () {
       // Use startup service
       const data = yield startup()
-      commit('START_OK', data)
+      commit('START_DATA', data)
+      yield dispatch('accounts/loadAccounts', null, {root: true})
+      yield dispatch('trackers/loadTrackers', null, {root: true})
+      yield dispatch('checkPastEvents')
+      commit('START_OK')
     })
       .catch(error => {
         commit('START_FAIL', error)
@@ -108,12 +87,22 @@ const actions = {
       })
   },
 
-  checkPastEvents ({commit, state, getters}) {
+  /**
+   * Check past events
+   *
+   * @param commit
+   * @param state
+   * @param rootState
+   * @param getters
+   * @param rootGetters
+   * @return {*}
+   */
+  checkPastEvents ({commit, state, rootState, getters, rootGetters}) {
     commit('CHECK_PAST_EVENTS')
 
     return co(function* () {
-      const data = yield checkPastEvents(bus, getters.currentTracker, state.accounts, state.tokenContract)
-      commit('CHECK_PAST_EVENTS_OK', data)
+      yield checkPastEvents(bus, rootGetters['trackers/currentTracker'], rootState.accounts.accounts, state.tokenContract)
+      commit('CHECK_PAST_EVENTS_OK')
     })
       .catch(error => {
         commit('CHECK_PAST_EVENTS_FAIL', error)
@@ -133,8 +122,11 @@ const mutations = {
     state.globalLoading = true
   },
 
-  START_OK (state, data) {
+  START_DATA (state, data) {
     state = Object.assign(state, data)
+  },
+
+  START_OK (state, data) {
     state.appStarting = false
     state.globalLoading = false
   },

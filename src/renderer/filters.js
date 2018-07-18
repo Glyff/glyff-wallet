@@ -1,6 +1,6 @@
 import Vue from 'vue'
-import web3 from '../services/web3'
+import {fromWei} from '../services/web3'
 
-Vue.filter('ether', (value, suffix = 'gly') => {
-  return web3.utils.fromWei(value + '', 'ether') + ' ' + suffix
+Vue.filter('ether', (value, suffix = 'gly', type = 'GLY') => {
+  return fromWei(value + '', type) + (suffix ? ' ' + suffix : '')
 })

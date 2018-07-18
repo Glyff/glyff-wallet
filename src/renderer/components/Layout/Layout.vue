@@ -1,5 +1,6 @@
 <template>
   <div class="container-fluid">
+    <toast position="nw"></toast>
     <div class="loading-overlay" v-if="globalLoading">
       <grid-loader></grid-loader>
     </div>
@@ -23,11 +24,13 @@
 <script>
 import {Modal} from 'uiv'
 import {mapState} from 'vuex'
+import Toast from './Toast'
 import Sidebar from './Sidebar'
 import GridLoader from 'vue-spinner/src/GridLoader.vue'
 
 export default {
   components: {
+    Toast,
     Sidebar,
     Modal,
     GridLoader,
