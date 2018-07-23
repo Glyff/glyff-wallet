@@ -47,18 +47,12 @@ export const mergeNotes = (tracker, amount, account, tokenContract) => {
  * @return {Promise<any>}
  */
 export const unshieldNote = (note, tracker, address, tokenContract) => {
-  return new Promise((resolve, reject) => {
-    const commitment = web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value)
-    createUnshielding(note, tracker, tokenContract, commitment).then(unshielding => {
-      const root = tokenContract.root()
+  return co(function* () {
+    const cm = yield web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value)
+    const unsh = yield createUnshielding(note, tracker, tokenContract, cm)
+    const root = tokenContract.root()
 
-      tokenContract.unshield(unshielding.proof, unshielding.spend_nf, commitment, root, note.value, {
-        from: address,
-        gas: config.unshieldGas
-      }, function (error, result) {
-        error ? reject(error) : resolve(result)
-      })
-    })
+    return yield tokenContract.unshield(unsh.proof, unsh.spend_nf, cm, root, note.value, {from: address, gas: config.unshieldGas})
   })
 }
 
@@ -72,12 +66,11 @@ export const unshieldNote = (note, tracker, address, tokenContract) => {
  * @return {Promise<any>}
  */
 export const shieldNote = (tracker, value, address, ztoken) => {
-  return new Promise((resolve, reject) => {
-    const rho = web3.zsl.getRandomness()
+  return co(function* () {
+    const rho = yield web3.zsl.getRandomness()
 
     debug('Generating proof for shielding - value : ' + value)
-    // TODO is this sync method? is there async alternative?
-    const result = web3.zsl.createShielding(rho, tracker.a_pk, value)
+    const result = yield web3.zsl.createShielding(rho, tracker.a_pk, value)
     debug('Generating finished')
 
     const note = {
@@ -90,9 +83,9 @@ export const shieldNote = (tracker, value, address, ztoken) => {
       tracker: tracker.uuid,
     }
 
-    ztoken.shield(result.proof, result.send_nf, result.cm, value, {from: address, gas: 200000}, (error, result) => {
-      error ? reject(error) : resolve(note)
-    })
+    yield ztoken.shield(result.proof, result.send_nf, result.cm, value, {from: address, gas: 200000})
+
+    return note
   })
 }
 
@@ -105,20 +98,15 @@ export const shieldNote = (tracker, value, address, ztoken) => {
  * @param tokenContract
  */
 export const unshieldAllNotes = (tracker, account, tBalance, tokenContract) => {
-  return new Promise((resolve, reject) => {
-    getGasPrice().then(gasPrice => {
-      if (tBalance.lt(gasPrice.multipliedBy(tracker.notes.length))) {
-        reject(new BalanceError('Not enough balance to unshield all notes'))
-      }
+  return co(function* () {
+    const gasPrice = yield getGasPrice()
+    if (tBalance.lt(gasPrice.mul(tracker.notes.length))) {
+      throw new BalanceError('Not enough balance to unshield all notes')
+    }
 
-      co(function* () {
-        // Simultaneously unshield all notes (async)
-        yield tracker.notes.map(note => {
-          return unshieldNote(note, tracker, account.address, tokenContract)
-        })
-
-        resolve()
-      }).catch(err => reject(err))
+    // Simultaneously unshield all notes (async)
+    yield tracker.notes.map(note => {
+      return unshieldNote(note, tracker, account.address, tokenContract)
     })
   })
 }
@@ -233,74 +221,71 @@ export const decryptBlob = (tracker, blob, address, tokenContract) => {
  * Send shielded note to an address
  */
 export const sendNote = (note, amount, recipientApk, account, tracker, tokenContract) => {
-  return new Promise((resolve, reject) => {
+  return co(function* () {
     debug('Started sendNote')
     if (note.value.lt(amount)) {
-      return reject(new NoteError('Cannot transfer ' + amount + ' as note value of ' + note.value + ' is too small.', 'NOT_ENOUGH_NOTE_VALUE'))
+      throw new NoteError('Cannot transfer ' + amount + ' as note value of ' + note.value + ' is too small.', 'NOT_ENOUGH_NOTE_VALUE')
     }
 
     const change = note.value.sub(amount)
-    const outRho1 = web3.zsl.getRandomness()
-    const outRho2 = web3.zsl.getRandomness()
+    const outRho1 = yield web3.zsl.getRandomness()
+    const outRho2 = yield web3.zsl.getRandomness()
 
-    createShieldedTransfer(note, tracker, amount, change, tokenContract, recipientApk, outRho1, outRho2)
-      .then(result => {
-        debug('Finishd sendNote' + JSON.stringify(result))
+    const shTransfer = yield createShieldedTransfer(note, tracker, amount, change, tokenContract, recipientApk, outRho1, outRho2)
 
-        const n1 = {
-          value: amount,
-          rho: outRho1,
-          uuid: web3.toHex(web3.utils.sha3(result.out_cm_1, {encoding: 'hex'})),
-          ztoken: tokenContract.address,
-          confirmed: false,
-          address: null,
-          tracker: null,
-        }
+    debug('Finishd sendNote' + JSON.stringify(shTransfer))
 
-        debug('Recipient receives note of ' + amount + ' ' + tokenContract.name())
+    const n1 = {
+      value: amount,
+      rho: outRho1,
+      uuid: web3.toHex(web3.utils.sha3(shTransfer.out_cm_1, {encoding: 'hex'})),
+      ztoken: tokenContract.address,
+      confirmed: false,
+      address: null,
+      tracker: null,
+    }
 
-        let n2 = {}
-        if (change.gt(0)) {
-          n2 = {
-            value: change,
-            rho: outRho2,
-            uuid: web3.toHex(web3.utils.sha3(result.out_cm_2, {encoding: 'hex'})),
-            ztoken: tokenContract.address,
-            confirmed: false,
-            address: account.address(),
-            tracker: tracker.uuid,
-          }
-        }
+    debug('Recipient receives note of ' + amount + ' ' + tokenContract.name())
 
-        debug('Sender receives change of ' + change + ' ' + tokenContract.name())
-        debug('Submit shielded transfer to z-contract...')
+    let n2 = {}
+    if (change.gt(0)) {
+      n2 = {
+        value: change,
+        rho: outRho2,
+        uuid: web3.toHex(web3.utils.sha3(shTransfer.out_cm_2, {encoding: 'hex'})),
+        ztoken: tokenContract.address,
+        confirmed: false,
+        address: account.address(),
+        tracker: tracker.uuid,
+      }
+    }
 
-        tokenContract.shieldedTransfer(
-          result.proof,
-          tokenContract.root(),
-          result.in_spend_nf_1,
-          result.in_spend_nf_2,
-          result.out_send_nf_1,
-          result.out_send_nf_2,
-          result.out_cm_1,
-          result.out_cm_2,
-          result.blob, {
-            from: account.address,
-            gas: 5470000
-          },
-          function (err, result) {
-            debug('Completed shielded transfer')
-            if (err) reject(err)
+    debug('Sender receives change of ' + change + ' ' + tokenContract.name())
+    debug('Submit shielded transfer to z-contract...')
 
-            const shlddTx = {
-              n: note,
-              n1: n1,
-              n2: n2,
-              to: recipientApk,
-            }
+    yield tokenContract.shieldedTransfer(
+      shTransfer.proof,
+      tokenContract.root(),
+      shTransfer.in_spend_nf_1,
+      shTransfer.in_spend_nf_2,
+      shTransfer.out_send_nf_1,
+      shTransfer.out_send_nf_2,
+      shTransfer.out_cm_1,
+      shTransfer.out_cm_2,
+      shTransfer.blob, {
+        from: account.address,
+        gas: 5470000
+      })
 
-            resolve(result, shlddTx)
-          })
-      }).catch(err => reject(err))
+    const shlddTx = {
+      n: note,
+      n1: n1,
+      n2: n2,
+      to: recipientApk,
+    }
+
+    debug('Completed shielded transfer', shlddTx)
+
+    return {transfer: shTransfer, tx: shlddTx}
   })
 }

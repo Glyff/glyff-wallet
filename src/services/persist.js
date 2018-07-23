@@ -18,9 +18,9 @@ const accountsSchema = Joi.array().items(
 )
 
 const stateSchema = Joi.object().keys({
-  trackers: Joi.array(),
-  transactions: Joi.array(),
-})
+  trackers: Joi.object(),
+  transactions: Joi.object(),
+}).options({ stripUnknown: true }) // Remove unknown keys
 
 /**
  * Load accounts
@@ -48,33 +48,24 @@ const loadState = () => {
   // If can't find state file, just return loaded acconts
   if (! fs.existsSync(statePath)) return {}
   const state = fs.readJsonSync(statePath)
+  console.log(state)
 
   // If state data is not valid, return only loaded accounts
   if (Joi.validate(state, stateSchema).error) return {}
 
-  // Convert traansactions data
-  state.transactions.forEach(tx => {
-    tx.amount = new BN(tx.amount)
-    tx.date = moment(tx.date)
-    return tx
+  // Convert transactions data
+  Object.keys(state.transactions).forEach(addr => {
+    state.transactions[addr].forEach(tx => {
+      tx.amount = new BN(tx.amount)
+      tx.date = moment(tx.date)
+    })
   })
 
-  // TODO Convert trackes data
+  console.log(state)
+
+  // TODO Convert trackes notes data
 
   return state
-}
-
-/**
- * Check and create missing trackers
- *
- * @param store
- */
-const checkAndCreateTrackers = (store) => {
-  store.state.accounts.accounts.forEach(account => {
-    if (! store.state.trackers.trackers[account.address]) {
-      store.commit('trackers/CREATE_TRACKER', account)
-    }
-  })
 }
 
 /**
@@ -98,10 +89,6 @@ export const restoreState = (store) => {
 
   if (allState) {
     store.replaceState(merge(store.state, allState))
-    if (store.state.accounts.accounts.length) {
-      store.commit('accounts/CHANGE_ACCOUNT', store.state.accounts.accounts[0])
-      checkAndCreateTrackers(store)
-    }
   }
 
   return state
@@ -114,7 +101,19 @@ export const restoreState = (store) => {
  * @return {*}
  */
 export const saveState = (state) => {
+  const transactions = merge({}, state.accounts.transactions)
+  const trackers = merge({}, state.trackers.trackers)
+
+  // Stringify transactions data
+  Object.keys(transactions).forEach(addr => {
+    transactions[addr].forEach(tx => {
+      tx.amount = tx.amount.toString(10)
+      tx.date = tx.date.format('YYYY-MM-YY hh:mm:ss')
+    })
+  })
+
   return co(function* () {
-    // fs.writeJsonSync(path, state)
+    fs.writeJsonSync(accountsPath, state.accounts.accounts)
+    fs.writeJsonSync(statePath, {transactions, trackers})
   })
 }

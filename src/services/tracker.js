@@ -1,5 +1,6 @@
 import co from 'co'
 import web3 from './web3'
+import uuid from 'uuid'
 
 /**
  * Create tracker
@@ -11,9 +12,10 @@ export const createTracker = () => {
     const keyPair = yield web3.zsl.generateZKeypair()
 
     return Object.assign({}, keyPair, {
+      uuid: uuid.v4(),
       notes: [],
       spent: [],
-      lastBlock: web3.eth.blockNumber,
+      lastBlock: 0,
     })
   })
 }

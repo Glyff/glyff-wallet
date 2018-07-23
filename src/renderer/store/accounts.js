@@ -1,4 +1,5 @@
 import BN from 'bn.js'
+import Vue from 'vue'
 import {fromWei} from '../../services/web3'
 
 /*
@@ -23,13 +24,13 @@ const getters = {
   },
 
   currentAccountTransactions (state, getters) {
-    if (! getters.currentAccount) return []
+    if (! state.selectedAccount) return []
 
-    return state.transactions[getters.currentAccount.address] || []
+    return state.transactions[state.selectedAccount] || []
   },
 
   glyBalance (state, getters) {
-    if (! getters.currentAccount) return new BN(0)
+    if (! state.selectedAccount) return new BN(0)
 
     return getters.calcBalance('GLY')
   },
@@ -41,7 +42,7 @@ const getters = {
   },
 
   calcBalance: (state, getters) => (type) => {
-    const address = getters.currentAccount.address
+    const address = state.selectedAccount
     let balance = new BN(0)
     getters.currentAccountTransactions.forEach(tx => {
       if (tx.type !== type) return
@@ -50,7 +51,8 @@ const getters = {
     })
 
     return balance
-  }
+  },
+
 }
 
 /*
@@ -58,20 +60,11 @@ const getters = {
  */
 const actions = {
 
-  // loadAccounts ({commit, state}) {
-  //   return co(function* () {
-  //     commit('LOAD_ACCOUNTS')
-  //     const accounts = yield loadAccounts(config.homeDir)
-  //     commit('LOAD_ACCOUNTS_OK', accounts)
-  //     // Select first account
-  //     if (typeof accounts[0] !== 'undefined' && ! state.selectedAccount) {
-  //       commit('CHANGE_ACCOUNT', accounts[0])
-  //     }
-  //   }).catch(err => {
-  //     commit('LOAD_ACCOUNTS_FAIL', err)
-  //     throw err
-  //   })
-  // },
+  selectIfNotSelected ({commit, state}) {
+    if (state.accounts.length) {
+      commit('CHANGE_ACCOUNT', state.accounts[0])
+    }
+  },
 
   glyTransfer ({commit, dispatch, getters}, tx) {
     commit('GLY_TRANSFER', tx)
@@ -90,23 +83,11 @@ const actions = {
  */
 const mutations = {
 
-  // LOAD_ACCOUNTS (state) {
-  //   //
-  // },
-  //
-  // LOAD_ACCOUNTS_OK (state, accounts) {
-  //   // Ensure that accounts have transactions array
-  //   accounts = accounts.map(acc => {
-  //     acc.transactions = acc.transactions || []
-  //     return acc
-  //   })
-  //   state.accounts = accounts
-  // },
-
   GLY_TRANSFER (state, tx) {
     const account = state.accounts.find(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
       a.address.toLowerCase() === tx.to.toLowerCase())
 
+    if (! state.transactions[account.address]) Vue.set(state.transactions, account.address, [])
     state.transactions[account.address].push(tx)
   },
 

@@ -19,7 +19,7 @@ const state = {
   createAccount: false,
 
   oToken: config.token,
-  tokenContract: new web3.eth.Contract(config.token.abi, config.token.address),
+  tokenContract: null,
 }
 
 /*
@@ -72,7 +72,12 @@ const actions = {
     commit('START')
 
     return co(function* () {
-      // Use startup service
+      yield dispatch('connect')
+      commit('SET_TOKEN_CONTRACT')
+      yield dispatch('accounts/selectIfNotSelected', null, {root: true})
+      yield dispatch('trackers/checkAndCreateTrackers', null, {root: true})
+      yield dispatch('checkPastEvents')
+
       commit('START_OK')
     })
       .catch(error => {
@@ -95,7 +100,8 @@ const actions = {
     commit('CHECK_PAST_EVENTS')
 
     return co(function* () {
-      yield checkPastEvents(bus, rootGetters['trackers/currentTracker'], rootState.accounts.accounts, state.tokenContract)
+      yield checkPastEvents(bus, rootGetters['trackers/currentTracker'],
+        rootState.accounts.accounts, rootState.accounts.transactions, state.tokenContract)
       commit('CHECK_PAST_EVENTS_OK')
     })
       .catch(error => {
@@ -150,6 +156,10 @@ const mutations = {
 
   CHECK_PAST_EVENTS_FAIL (state, error) {
     state.checkingPastEvents = false
+  },
+
+  SET_TOKEN_CONTRACT (state) {
+    state.tokenContract = new web3.eth.Contract(state.oToken.abi, state.oToken.address)
   },
 
 }

@@ -1,10 +1,12 @@
 import {createTracker} from '../../services/tracker'
+import co from 'co'
+import Vue from 'vue'
 
 /*
  * State
  */
 const state = {
-  trackers: [],
+  trackers: {},
 }
 
 /*
@@ -13,7 +15,7 @@ const state = {
 const getters = {
 
   currentTracker (state, getters, rootState) {
-    if (! state.trackers.length) return null
+    if (! rootState.accounts.selectedAccount) return null
 
     return state.trackers[rootState.accounts.selectedAccount]
   },
@@ -29,13 +31,37 @@ const actions = {
     commit('NEW_SHIELDING', event)
   },
 
+  /**
+   * Create a new tracker
+   *
+   * @param commit
+   * @param account
+   */
   createTracker ({commit}, account) {
     commit('CREATE_TRACKER')
-    createTracker().then(tracker => {
+    return createTracker().then(tracker => {
       commit('CREATE_TRACKER_OK', {account, tracker})
+      return tracker
     })
-  }
+  },
 
+  /**
+   * Check if trackers exist and create if needed
+   *
+   * @param dispatch
+   * @param state
+   * @param rootState
+   * @return {*}
+   */
+  checkAndCreateTrackers ({dispatch, state, rootState}) {
+    return co(function* () {
+      yield rootState.accounts.accounts.map(account => {
+        if (! state.trackers[account.address]) {
+          return dispatch('createTracker', account)
+        }
+      })
+    })
+  },
 }
 
 /*
@@ -48,15 +74,7 @@ const mutations = {
   },
 
   CREATE_TRACKER_OK (state, {account, tracker}) {
-    state.trackers[account.address] = tracker
-  },
-
-  LOAD_TRACKERS_OK (state, trackers) {
-    state.trackers = trackers
-  },
-
-  LOAD_TRACKERS_FAIL (state, error) {
-    //
+    Vue.set(state.trackers, account.address, tracker)
   },
 
   NEW_SHIELDING (state, event) {

@@ -18,15 +18,15 @@ export default {
 
   mounted () {
     co(function* () {
-      yield this.connect()
-      yield this.startApp()
+      // yield this.connect()
+      yield this.start()
     }.bind(this))
   },
 
   methods: {
     ...mapActions({
-      connect: 'general/connect',
-      startApp: 'general/start',
+      // connect: 'general/connect',
+      start: 'general/start',
       checkPastEvents: 'general/checkPastEvents',
     }),
   },

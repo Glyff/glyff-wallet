@@ -5,7 +5,7 @@ import toast from './toast'
 import general from './general'
 import trackers from './trackers'
 import accounts from './accounts'
-import {restoreState} from '../../services/persist'
+import {restoreState, saveState} from '../../services/persist'
 
 Vue.use(Vuex)
 
@@ -27,5 +27,9 @@ const store = new Vuex.Store({
 })
 
 restoreState(store)
+
+window.addEventListener('beforeunload', evt => {
+  saveState(store.state)
+})
 
 export default store

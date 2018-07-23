@@ -15,13 +15,15 @@ export const syncChain = () => {
  * @param {Bus} bus
  * @param tracker
  * @param accounts
+ * @param transactions
  * @param tokenContract
  * @return {{event, args}}
  */
-export const checkPastEvents = (bus, tracker, accounts, tokenContract) => {
+export const checkPastEvents = (bus, tracker, accounts, transactions, tokenContract) => {
   return co(function* () {
     debug(`Retrieving past events from block ${tracker.lastBlock} to the latest`)
-    // TODO use {filter: {from: [12,13]}} to filter by needed account addresses as they are indexed,
+    // TODO use {filter: {from: [12,13]}} to filter by needed account addresses as they are indexed
+    // TODO split by event types into different methods
     const events = yield tokenContract.getPastEvents('allEvents', {fromBlock: tracker.lastBlock, toBlock: 'latest'})
     debug(`Found ${events.length} past events`)
 
@@ -45,6 +47,10 @@ export const checkPastEvents = (bus, tracker, accounts, tokenContract) => {
 
         switch (event.event) {
           case 'LogTransfer':
+            // Check if transactions already exist
+            if (transactions[account.address] &&
+              transactions[account.address].find(tx => tx.hash === event.transactionHash)) return
+
             return bus.emit('gly-transfer', createGlxTransaction(event, account, block.timestamp))
           case 'LogShielding':
             return bus.emit('shielding', event)
