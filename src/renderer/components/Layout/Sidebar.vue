@@ -9,13 +9,17 @@
     </div>
     <div class="row">
       <!-- Begin Profile Info Block -->
-      <div id="profile-info-block" class="container-fluid">
-        <div class="profile-picture-block">
-          <img src="@/assets/images/profile.png" title="Person Name" />
-        </div>
-        <div class="profile-name">
-          <h4>Person Name</h4>
-        </div>
+      <div class="form-group current-account-form">
+        <label>Current account</label>
+        <multiselect :options="accounts"
+                     :value="currentAccount"
+                     @input="changeAccount"
+                     track-by="address"
+                     label="address"
+                     :searchable="false"
+                     :allow-empty="false"
+                     :show-labels="false"
+        ></multiselect>
       </div>
       <!-- End Profile Info Block -->
     </div>
@@ -36,3 +40,30 @@
     </div>
   </div>
 </template>
+
+<script>
+import Multiselect from 'vue-multiselect/src/Multiselect.vue'
+import { mapState, mapGetters, mapMutations } from 'vuex'
+
+export default {
+  components: {
+    Multiselect
+  },
+
+  computed: {
+    ...mapState({
+      accounts: s => s.accounts.accounts,
+    }),
+
+    ...mapGetters({
+      currentAccount: 'accounts/currentAccount',
+    })
+  },
+
+  methods: {
+    ...mapMutations({
+      changeAccount: 'accounts/CHANGE_ACCOUNT',
+    }),
+  },
+}
+</script>

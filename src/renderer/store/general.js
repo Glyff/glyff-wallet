@@ -1,8 +1,8 @@
 import co from 'co'
-import {connect as web3Connect} from '../../services/web3'
+import web3, {connect as web3Connect} from '../../services/web3'
 import bus from '../bus'
-import startup from '../../services/startup'
 import {checkPastEvents} from '../../services/blockchain'
+import config from '../../config'
 
 /*
  * State
@@ -16,11 +16,10 @@ const state = {
   startError: null,
   connectionError: null,
 
-  installation: false,
-  filesCorrupted: false,
+  createAccount: false,
 
-  oToken: null,
-  tokenContract: null,
+  oToken: config.token,
+  tokenContract: new web3.eth.Contract(config.token.abi, config.token.address),
 }
 
 /*
@@ -74,11 +73,6 @@ const actions = {
 
     return co(function* () {
       // Use startup service
-      const data = yield startup()
-      commit('START_DATA', data)
-      yield dispatch('accounts/loadAccounts', null, {root: true})
-      yield dispatch('trackers/loadTrackers', null, {root: true})
-      yield dispatch('checkPastEvents')
       commit('START_OK')
     })
       .catch(error => {
@@ -120,10 +114,6 @@ const mutations = {
   START (state) {
     state.appStarting = true
     state.globalLoading = true
-  },
-
-  START_DATA (state, data) {
-    state = Object.assign(state, data)
   },
 
   START_OK (state, data) {

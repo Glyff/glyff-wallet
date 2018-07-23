@@ -1,7 +1,4 @@
 import BN from 'bn.js'
-import co from 'co'
-import config from '../../config'
-import {loadAccounts} from '../../services/account'
 import {fromWei} from '../../services/web3'
 
 /*
@@ -9,7 +6,9 @@ import {fromWei} from '../../services/web3'
  */
 const state = {
   accounts: [],
-  selectedAccount: 0,
+  selectedAccount: null,
+
+  transactions: {},
 }
 
 /*
@@ -20,13 +19,13 @@ const getters = {
   currentAccount (state) {
     if (! state.accounts.length) return null
 
-    return state.accounts[state.selectedAccount]
+    return state.accounts.find(a => a.address === state.selectedAccount)
   },
 
   currentAccountTransactions (state, getters) {
     if (! getters.currentAccount) return []
 
-    return getters.currentAccount.transactions || []
+    return state.transactions[getters.currentAccount.address] || []
   },
 
   glyBalance (state, getters) {
@@ -59,15 +58,20 @@ const getters = {
  */
 const actions = {
 
-  loadAccounts ({commit}) {
-    return co(function* () {
-      commit('LOAD_ACCOUNTS')
-      commit('LOAD_ACCOUNTS_OK', yield loadAccounts(config.homeDir))
-    }).catch(err => {
-      commit('LOAD_ACCOUNTS_FAIL', err)
-      throw err
-    })
-  },
+  // loadAccounts ({commit, state}) {
+  //   return co(function* () {
+  //     commit('LOAD_ACCOUNTS')
+  //     const accounts = yield loadAccounts(config.homeDir)
+  //     commit('LOAD_ACCOUNTS_OK', accounts)
+  //     // Select first account
+  //     if (typeof accounts[0] !== 'undefined' && ! state.selectedAccount) {
+  //       commit('CHANGE_ACCOUNT', accounts[0])
+  //     }
+  //   }).catch(err => {
+  //     commit('LOAD_ACCOUNTS_FAIL', err)
+  //     throw err
+  //   })
+  // },
 
   glyTransfer ({commit, dispatch, getters}, tx) {
     commit('GLY_TRANSFER', tx)
@@ -86,29 +90,28 @@ const actions = {
  */
 const mutations = {
 
-  LOAD_ACCOUNTS (state) {
-    //
-  },
-
-  LOAD_ACCOUNTS_OK (state, accounts) {
-    // Ensure that accounts have transactions array
-    accounts = accounts.map(acc => {
-      acc.transactions = acc.transactions || []
-      return acc
-    })
-    state.accounts = accounts
-  },
-
-  LOAD_ACCOUNTS_FAIL (state, error) {
-    //
-  },
+  // LOAD_ACCOUNTS (state) {
+  //   //
+  // },
+  //
+  // LOAD_ACCOUNTS_OK (state, accounts) {
+  //   // Ensure that accounts have transactions array
+  //   accounts = accounts.map(acc => {
+  //     acc.transactions = acc.transactions || []
+  //     return acc
+  //   })
+  //   state.accounts = accounts
+  // },
 
   GLY_TRANSFER (state, tx) {
-    // console.log(state.accounts, tx)
-    const index = state.accounts.findIndex(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
+    const account = state.accounts.find(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
       a.address.toLowerCase() === tx.to.toLowerCase())
 
-    state.accounts[index].transactions.push(tx)
+    state.transactions[account.address].push(tx)
+  },
+
+  CHANGE_ACCOUNT (state, account) {
+    state.selectedAccount = account.address
   },
 
 }

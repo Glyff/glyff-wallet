@@ -1,321 +1,751 @@
-[{
-  "constant": true,
-  "inputs": [],
-  "name": "name",
-  "outputs": [{"name": "", "type": "string"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": false,
-  "inputs": [{"name": "v", "type": "uint256"}, {"name": "n", "type": "uint256"}],
-  "name": "rightShift",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "totalSupply",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [{"name": "left", "type": "bytes32"}, {"name": "right", "type": "bytes32"}],
-  "name": "combine",
-  "outputs": [{"name": "", "type": "bytes32"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "decimals",
-  "outputs": [{"name": "", "type": "uint8"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "shieldedTxCapacity",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "shieldedTransferCount",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [{"name": "cm", "type": "bytes32"}],
-  "name": "getWitness",
-  "outputs": [{"name": "", "type": "uint256"}, {"name": "", "type": "bytes32[]"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "available",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "unshieldingCount",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": false,
-  "inputs": [{"name": "proof", "type": "bytes"}, {"name": "send_nf", "type": "bytes32"}, {
-    "name": "cm",
-    "type": "bytes32"
-  }, {"name": "value", "type": "uint64"}],
-  "name": "shield",
-  "outputs": [],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}, {
-  "constant": false,
-  "inputs": [{"name": "v", "type": "uint256"}, {"name": "n", "type": "uint256"}],
-  "name": "leftShift",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "capacity",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "shieldedTxAvailable",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "depth",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "getEmptyRoots",
-  "outputs": [{"name": "", "type": "bytes32[]"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [{"name": "", "type": "address"}],
-  "name": "balanceOf",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "shieldingCount",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": false,
-  "inputs": [{"name": "proof", "type": "bytes"}, {"name": "spend_nf", "type": "bytes32"}, {
-    "name": "cm",
-    "type": "bytes32"
-  }, {"name": "rt", "type": "bytes32"}, {"name": "value", "type": "uint64"}],
-  "name": "unshield",
-  "outputs": [],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [{"name": "cm", "type": "bytes32"}],
-  "name": "commitmentExists",
-  "outputs": [{"name": "", "type": "bool"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "owner",
-  "outputs": [{"name": "", "type": "address"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "size",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": false,
-  "inputs": [{"name": "cm", "type": "bytes32"}],
-  "name": "addCommitment",
-  "outputs": [],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [{"name": "depth", "type": "uint256"}],
-  "name": "getEmptyRoot",
-  "outputs": [{"name": "", "type": "bytes32"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": false,
-  "inputs": [{"name": "recipient", "type": "address"}, {"name": "value", "type": "uint256"}],
-  "name": "transfer",
-  "outputs": [],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}, {
-  "constant": false,
-  "inputs": [{"name": "proof", "type": "bytes"}, {"name": "anchor", "type": "bytes32"}, {
-    "name": "spend_nf_1",
-    "type": "bytes32"
-  }, {"name": "spend_nf_2", "type": "bytes32"}, {"name": "send_nf_1", "type": "bytes32"}, {
-    "name": "send_nf_2",
-    "type": "bytes32"
-  }, {"name": "cm_1", "type": "bytes32"}, {"name": "cm_2", "type": "bytes32"}, {"name": "blob", "type": "string"}],
-  "name": "shieldedTransfer",
-  "outputs": [],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "balance",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [{"name": "cm", "type": "bytes32"}],
-  "name": "getLeafIndex",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "ZTOKEN_TREE_DEPTH",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [{"name": "index", "type": "uint256"}],
-  "name": "getCommitmentAtLeafIndex",
-  "outputs": [{"name": "", "type": "bytes32"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": true,
-  "inputs": [],
-  "name": "root",
-  "outputs": [{"name": "", "type": "bytes32"}],
-  "payable": false,
-  "stateMutability": "view",
-  "type": "function"
-}, {
-  "constant": false,
-  "inputs": [{"name": "newOwner", "type": "address"}],
-  "name": "transferOwnership",
-  "outputs": [],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}, {
-  "inputs": [{"name": "ownerBalance", "type": "uint256"}, {"name": "tokenName", "type": "string"}],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "constructor"
-},
-{
-  "payable": false, "stateMutability": "nonpayable", "type": "fallback"}, {
-  "anonymous": false,
-  "inputs": [
-    {"indexed": true, "name": "from", "type": "address"},
-    {"indexed": true, "name": "to", "type": "address"},
-    {"indexed": false, "name": "value", "type": "uint256"}
-  ],
-  "name": "LogTransfer",
-  "type": "event"
-}, {
-  "anonymous": false,
-  "inputs": [{"indexed": true, "name": "to", "type": "address"}, {
-    "indexed": false,
-    "name": "amount",
-    "type": "uint256"
-  }],
-  "name": "LogMint",
-  "type": "event"
-}, {
-  "anonymous": false,
-  "inputs": [{"indexed": true, "name": "from", "type": "address"}, {
-    "indexed": false,
-    "name": "value",
-    "type": "uint256"
-  }, {"indexed": false, "name": "uuid", "type": "bytes32"}],
-  "name": "LogShielding",
-  "type": "event"
-}, {
-  "anonymous": false,
-  "inputs": [{"indexed": true, "name": "from", "type": "address"}, {
-    "indexed": false,
-    "name": "value",
-    "type": "uint256"
-  }, {"indexed": false, "name": "uuid", "type": "bytes32"}],
-  "name": "LogUnshielding",
-  "type": "event"
-}, {
-  "anonymous": false,
-  "inputs": [{"indexed": true, "name": "from", "type": "address"}, {
-    "indexed": false,
-    "name": "uuid_1",
-    "type": "bytes32"
-  }, {"indexed": false, "name": "uuid_2", "type": "bytes32"}, {"indexed": false, "name": "blob", "type": "string"}],
-  "name": "LogShieldedTransfer",
-  "type": "event"
-}]
+[
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"name",
+    "outputs":[
+      {
+        "name":"",
+        "type":"string"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":false,
+    "inputs":[
+      {
+        "name":"v",
+        "type":"uint256"
+      },
+      {
+        "name":"n",
+        "type":"uint256"
+      }
+    ],
+    "name":"rightShift",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"totalSupply",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+      {
+        "name":"left",
+        "type":"bytes32"
+      },
+      {
+        "name":"right",
+        "type":"bytes32"
+      }
+    ],
+    "name":"combine",
+    "outputs":[
+      {
+        "name":"",
+        "type":"bytes32"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"decimals",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint8"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"shieldedTxCapacity",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"shieldedTransferCount",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+      {
+        "name":"cm",
+        "type":"bytes32"
+      }
+    ],
+    "name":"getWitness",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      },
+      {
+        "name":"",
+        "type":"bytes32[]"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"available",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"unshieldingCount",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":false,
+    "inputs":[
+      {
+        "name":"proof",
+        "type":"bytes"
+      },
+      {
+        "name":"send_nf",
+        "type":"bytes32"
+      },
+      {
+        "name":"cm",
+        "type":"bytes32"
+      },
+      {
+        "name":"value",
+        "type":"uint64"
+      }
+    ],
+    "name":"shield",
+    "outputs":[
+
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "constant":false,
+    "inputs":[
+      {
+        "name":"v",
+        "type":"uint256"
+      },
+      {
+        "name":"n",
+        "type":"uint256"
+      }
+    ],
+    "name":"leftShift",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"capacity",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"shieldedTxAvailable",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"depth",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"getEmptyRoots",
+    "outputs":[
+      {
+        "name":"",
+        "type":"bytes32[]"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+      {
+        "name":"",
+        "type":"address"
+      }
+    ],
+    "name":"balanceOf",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"shieldingCount",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":false,
+    "inputs":[
+      {
+        "name":"proof",
+        "type":"bytes"
+      },
+      {
+        "name":"spend_nf",
+        "type":"bytes32"
+      },
+      {
+        "name":"cm",
+        "type":"bytes32"
+      },
+      {
+        "name":"rt",
+        "type":"bytes32"
+      },
+      {
+        "name":"value",
+        "type":"uint64"
+      }
+    ],
+    "name":"unshield",
+    "outputs":[
+
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+      {
+        "name":"cm",
+        "type":"bytes32"
+      }
+    ],
+    "name":"commitmentExists",
+    "outputs":[
+      {
+        "name":"",
+        "type":"bool"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"owner",
+    "outputs":[
+      {
+        "name":"",
+        "type":"address"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"size",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":false,
+    "inputs":[
+      {
+        "name":"cm",
+        "type":"bytes32"
+      }
+    ],
+    "name":"addCommitment",
+    "outputs":[
+
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+      {
+        "name":"depth",
+        "type":"uint256"
+      }
+    ],
+    "name":"getEmptyRoot",
+    "outputs":[
+      {
+        "name":"",
+        "type":"bytes32"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":false,
+    "inputs":[
+      {
+        "name":"recipient",
+        "type":"address"
+      },
+      {
+        "name":"value",
+        "type":"uint256"
+      }
+    ],
+    "name":"transfer",
+    "outputs":[
+
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "constant":false,
+    "inputs":[
+      {
+        "name":"proof",
+        "type":"bytes"
+      },
+      {
+        "name":"anchor",
+        "type":"bytes32"
+      },
+      {
+        "name":"spend_nf_1",
+        "type":"bytes32"
+      },
+      {
+        "name":"spend_nf_2",
+        "type":"bytes32"
+      },
+      {
+        "name":"send_nf_1",
+        "type":"bytes32"
+      },
+      {
+        "name":"send_nf_2",
+        "type":"bytes32"
+      },
+      {
+        "name":"cm_1",
+        "type":"bytes32"
+      },
+      {
+        "name":"cm_2",
+        "type":"bytes32"
+      },
+      {
+        "name":"blob",
+        "type":"string"
+      }
+    ],
+    "name":"shieldedTransfer",
+    "outputs":[
+
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"balance",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+      {
+        "name":"cm",
+        "type":"bytes32"
+      }
+    ],
+    "name":"getLeafIndex",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"ZTOKEN_TREE_DEPTH",
+    "outputs":[
+      {
+        "name":"",
+        "type":"uint256"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+      {
+        "name":"index",
+        "type":"uint256"
+      }
+    ],
+    "name":"getCommitmentAtLeafIndex",
+    "outputs":[
+      {
+        "name":"",
+        "type":"bytes32"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":true,
+    "inputs":[
+
+    ],
+    "name":"root",
+    "outputs":[
+      {
+        "name":"",
+        "type":"bytes32"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"view",
+    "type":"function"
+  },
+  {
+    "constant":false,
+    "inputs":[
+      {
+        "name":"newOwner",
+        "type":"address"
+      }
+    ],
+    "name":"transferOwnership",
+    "outputs":[
+
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"
+  },
+  {
+    "inputs":[
+      {
+        "name":"ownerBalance",
+        "type":"uint256"
+      },
+      {
+        "name":"tokenName",
+        "type":"string"
+      }
+    ],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"constructor"
+  },
+  {
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"fallback"
+  },
+  {
+    "anonymous":false,
+    "inputs":[
+      {
+        "indexed":true,
+        "name":"from",
+        "type":"address"
+      },
+      {
+        "indexed":true,
+        "name":"to",
+        "type":"address"
+      },
+      {
+        "indexed":false,
+        "name":"value",
+        "type":"uint256"
+      }
+    ],
+    "name":"LogTransfer",
+    "type":"event"
+  },
+  {
+    "anonymous":false,
+    "inputs":[
+      {
+        "indexed":true,
+        "name":"to",
+        "type":"address"
+      },
+      {
+        "indexed":false,
+        "name":"amount",
+        "type":"uint256"
+      }
+    ],
+    "name":"LogMint",
+    "type":"event"
+  },
+  {
+    "anonymous":false,
+    "inputs":[
+      {
+        "indexed":true,
+        "name":"from",
+        "type":"address"
+      },
+      {
+        "indexed":false,
+        "name":"value",
+        "type":"uint256"
+      },
+      {
+        "indexed":false,
+        "name":"uuid",
+        "type":"bytes32"
+      }
+    ],
+    "name":"LogShielding",
+    "type":"event"
+  },
+  {
+    "anonymous":false,
+    "inputs":[
+      {
+        "indexed":true,
+        "name":"from",
+        "type":"address"
+      },
+      {
+        "indexed":false,
+        "name":"value",
+        "type":"uint256"
+      },
+      {
+        "indexed":false,
+        "name":"uuid",
+        "type":"bytes32"
+      }
+    ],
+    "name":"LogUnshielding",
+    "type":"event"
+  },
+  {
+    "anonymous":false,
+    "inputs":[
+      {
+        "indexed":true,
+        "name":"from",
+        "type":"address"
+      },
+      {
+        "indexed":false,
+        "name":"uuid_1",
+        "type":"bytes32"
+      },
+      {
+        "indexed":false,
+        "name":"uuid_2",
+        "type":"bytes32"
+      },
+      {
+        "indexed":false,
+        "name":"blob",
+        "type":"string"
+      }
+    ],
+    "name":"LogShieldedTransfer",
+    "type":"event"
+  }
+]

@@ -1,14 +1,10 @@
-import co from 'co'
-import {loadTrackers} from '../../services/tracker'
-import config from '../../config'
+import {createTracker} from '../../services/tracker'
 
 /*
  * State
  */
 const state = {
   trackers: [],
-  selectedTracker: 0,
-  zBalance: [],
 }
 
 /*
@@ -16,10 +12,10 @@ const state = {
  */
 const getters = {
 
-  currentTracker (state) {
+  currentTracker (state, getters, rootState) {
     if (! state.trackers.length) return null
 
-    return state.trackers[state.selectedTracker]
+    return state.trackers[rootState.accounts.selectedAccount]
   },
 
 }
@@ -29,19 +25,16 @@ const getters = {
  */
 const actions = {
 
-  loadTrackers ({commit}) {
-    return co(function* () {
-      commit('LOAD_TRACKERS')
-      commit('LOAD_TRACKERS_OK', yield loadTrackers(config.homeDir))
-    }).catch(err => {
-      commit('LOAD_TRACKERS_FAIL', err)
-      throw err
-    })
-  },
-
   glyShielding ({commit}, event) {
     commit('NEW_SHIELDING', event)
   },
+
+  createTracker ({commit}, account) {
+    commit('CREATE_TRACKER')
+    createTracker().then(tracker => {
+      commit('CREATE_TRACKER_OK', {account, tracker})
+    })
+  }
 
 }
 
@@ -50,8 +43,12 @@ const actions = {
  */
 const mutations = {
 
-  LOAD_TRACKERS (state) {
+  CREATE_TRACKER () {
     //
+  },
+
+  CREATE_TRACKER_OK (state, {account, tracker}) {
+    state.trackers[account.address] = tracker
   },
 
   LOAD_TRACKERS_OK (state, trackers) {

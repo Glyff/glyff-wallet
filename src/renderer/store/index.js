@@ -5,6 +5,7 @@ import toast from './toast'
 import general from './general'
 import trackers from './trackers'
 import accounts from './accounts'
+import {restoreState} from '../../services/persist'
 
 Vue.use(Vuex)
 
@@ -14,7 +15,7 @@ const plugins = []
 
 if (debug) plugins.push(createLogger())
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
   modules: {
     toast,
     general,
@@ -24,3 +25,7 @@ export default new Vuex.Store({
   strict: ! debug,
   plugins,
 })
+
+restoreState(store)
+
+export default store
