@@ -117,6 +117,14 @@ const actions = {
  */
 const mutations = {
 
+  START_LOADING (state) {
+    state.globalLoading = true
+  },
+
+  STOP_LOADING (state) {
+    state.globalLoading = false
+  },
+
   START (state) {
     state.appStarting = true
     state.globalLoading = true

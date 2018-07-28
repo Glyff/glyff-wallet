@@ -1,5 +1,6 @@
 import Web3 from 'web3-zsl'
 import BN from 'bn.js'
+import co from 'co'
 import config from '../config'
 
 const debug = require('debug')('web3')
@@ -117,29 +118,31 @@ const emptyUncles = ['0x80000000000000000000000000000000000000000000000000000000
  * @return {Promise<any>}
  */
 export const createShieldedTransfer = (note, tracker, amount, change, tokenContract, recipientApk, outRho1, outRho2) => {
-  const tmpKeypair = web3.zsl.GenerateZKeypair()
-  const commitment = web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value)
-  const witnesses = tokenContract.getWitness(commitment)
-  const treeIndex = parseInt(witnesses[0])
-  const authPath = witnesses[1]
+  return co(function* () {
+    const tmpKeypair = web3.zsl.GenerateZKeypair()
+    const commitment = web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value)
+    const witnesses = tokenContract.getWitness(commitment)
+    const treeIndex = parseInt(witnesses[0])
+    const authPath = witnesses[1]
 
-  return web3.zsl.createShieldedTransfer(
-    note.rho,
-    tracker.a_sk,
-    note.value,
-    treeIndex,
-    authPath,
-    web3.zsl.getRandomness(),
-    tmpKeypair.a_sk,
-    0,
-    0,
-    emptyUncles,
-    outRho1,
-    recipientApk,
-    amount,
-    outRho2,
-    tracker.a_pk,
-    change)
+    return web3.zsl.createShieldedTransfer(
+      note.rho,
+      tracker.a_sk,
+      note.value,
+      treeIndex,
+      authPath,
+      yield web3.zsl.getRandomness(),
+      tmpKeypair.a_sk,
+      0,
+      0,
+      emptyUncles,
+      outRho1,
+      recipientApk,
+      amount,
+      outRho2,
+      tracker.a_pk,
+      change)
+  })
 }
 
 export default web3

@@ -7,7 +7,7 @@
       </div>
       <!-- End Logo Block -->
     </div>
-    <div class="row">
+    <div>
       <!-- Begin Profile Info Block -->
       <div class="form-group current-account-form">
         <label>Current account</label>
@@ -15,11 +15,12 @@
                      :value="currentAccount"
                      @input="changeAccount"
                      track-by="address"
-                     label="address"
+                     :custom-label="({name, address}) => name || address"
                      :searchable="false"
                      :allow-empty="false"
                      :show-labels="false"
         ></multiselect>
+        <new-account></new-account>
       </div>
       <!-- End Profile Info Block -->
     </div>
@@ -44,10 +45,12 @@
 <script>
 import Multiselect from 'vue-multiselect/src/Multiselect.vue'
 import { mapState, mapGetters, mapMutations } from 'vuex'
+import NewAccount from '../Accounts/NewAccount'
 
 export default {
   components: {
-    Multiselect
+    Multiselect,
+    NewAccount,
   },
 
   computed: {

@@ -1,11 +1,19 @@
 import BN from 'bn.js'
 import Vue from 'vue'
-import {fromWei} from '../../services/web3'
+import co from 'co'
+import web3, {fromWei} from '../../services/web3'
 
 /*
  * State
  */
 const state = {
+  /**
+   * Account structure: {
+   *   name: string,
+   *   address: string,
+   *   locked: boolean,
+   * }
+   */
   accounts: [],
   selectedAccount: null,
 
@@ -66,6 +74,20 @@ const actions = {
     }
   },
 
+  create ({commit}, {name, password}) {
+    return co(function* () {
+      commit('ganeral/START_LOADING', null, {root: true})
+      commit('CREATE')
+      const address = yield web3.eth.personal.newAccount(password)
+      commit('CREATE_OK', {name, address})
+    }).then(() => {
+      commit('ganeral/STOP_LOADING', null, {root: true})
+    }).catch(err => {
+      commit('CREATE_FAIL', err)
+      throw err
+    })
+  },
+
   glyTransfer ({commit, dispatch, getters}, tx) {
     commit('GLY_TRANSFER', tx)
     if (tx.direction === 'in') {
@@ -89,6 +111,18 @@ const mutations = {
 
     if (! state.transactions[account.address]) Vue.set(state.transactions, account.address, [])
     state.transactions[account.address].push(tx)
+  },
+
+  CREATE (state) {
+    //
+  },
+
+  CREATE_OK (state, account) {
+    state.accounts.push(Object.assign({}, account, {locked: false}))
+  },
+
+  CREATE_FAIL (state, error) {
+    //
   },
 
   CHANGE_ACCOUNT (state, account) {

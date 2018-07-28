@@ -1,4 +1,5 @@
 import './assets/scss/index.scss'
+import './legacy'
 import Vue from 'vue'
 import axios from 'axios'
 
