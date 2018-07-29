@@ -1,7 +1,7 @@
 import BN from 'bn.js'
 import Vue from 'vue'
 import co from 'co'
-import web3, {fromWei} from '../../services/web3'
+import web3, {fromWei, isUnlocked} from '../../services/web3'
 
 /*
  * State
@@ -11,11 +11,13 @@ const state = {
    * Account structure: {
    *   name: string,
    *   address: string,
+   *   balance: string,
    *   locked: boolean,
    * }
    */
   accounts: [],
-  selectedAccount: null,
+
+  selectedAddress: null,
 
   transactions: {},
 }
@@ -28,19 +30,19 @@ const getters = {
   currentAccount (state) {
     if (! state.accounts.length) return null
 
-    return state.accounts.find(a => a.address === state.selectedAccount)
+    return state.accounts.find(a => a.address === state.selectedAddress)
   },
 
   currentAccountTransactions (state, getters) {
-    if (! state.selectedAccount) return []
+    if (! state.selectedAddress) return []
 
-    return state.transactions[state.selectedAccount] || []
+    return state.transactions[state.selectedAddress] || []
   },
 
   glyBalance (state, getters) {
-    if (! state.selectedAccount) return new BN(0)
+    if (! getters.currentAccount || ! getters.currentAccount.balance) return new BN(0)
 
-    return getters.calcBalance('GLY')
+    return getters.currentAccount.balance
   },
 
   glxBalance (state, getters) {
@@ -50,12 +52,12 @@ const getters = {
   },
 
   calcBalance: (state, getters) => (type) => {
-    const address = state.selectedAccount
+    const address = state.selectedAddress.toLowerCase()
     let balance = new BN(0)
     getters.currentAccountTransactions.forEach(tx => {
       if (tx.type !== type) return
-      if (tx.from === address) balance = balance.sub(tx.amount)
-      if (tx.to === address) balance = balance.add(tx.amount)
+      if (tx.from.toLowerCase() === address) balance = balance.sub(tx.amount)
+      if (tx.to.toLowerCase() === address) balance = balance.add(tx.amount)
     })
 
     return balance
@@ -74,22 +76,42 @@ const actions = {
     }
   },
 
-  create ({commit}, {name, password}) {
+  checkIfLocked ({commit, state}) {
+    state.accounts.map(a => {
+      isUnlocked(a).then(unlocked => {
+        if (unlocked) commit('UNLOCK', a)
+        else commit('LOCK', a)
+      })
+    })
+  },
+
+  create ({commit, dispatch}, {name, password}) {
     return co(function* () {
-      commit('ganeral/START_LOADING', null, {root: true})
+      commit('general/START_LOADING', null, {root: true})
       commit('CREATE')
       const address = yield web3.eth.personal.newAccount(password)
-      commit('CREATE_OK', {name, address})
+      const account = {name, address}
+      commit('CREATE_OK', account)
+      yield dispatch('loadGlyBalance', account)
+      yield dispatch('trackers/create', account, {root: true})
+      yield dispatch('general/checkPastEvents', null, {root: true})
     }).then(() => {
-      commit('ganeral/STOP_LOADING', null, {root: true})
+      commit('general/STOP_LOADING', null, {root: true})
     }).catch(err => {
       commit('CREATE_FAIL', err)
       throw err
     })
   },
 
-  glyTransfer ({commit, dispatch, getters}, tx) {
-    commit('GLY_TRANSFER', tx)
+  loadGlyBalance ({commit}, {address}) {
+    return co(function* () {
+      commit('LOAD_GLY_BALANCE')
+      commit('LOAD_GLY_BALANCE_OK', {address, balance: new BN(yield web3.eth.getBalance(address))})
+    }).catch(err => commit('LOAD_GLY_BALANCE_FAIL', err))
+  },
+
+  glxTransfer ({commit, dispatch, getters}, tx) {
+    commit('GLX_TRANSFER', tx)
     if (tx.direction === 'in') {
       dispatch('addToastMessage', {
         text: 'You just recieved ' + fromWei(tx.amount, tx.type) + ' ' + tx.type + ' from ' + tx.from,
@@ -105,20 +127,13 @@ const actions = {
  */
 const mutations = {
 
-  GLY_TRANSFER (state, tx) {
-    const account = state.accounts.find(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
-      a.address.toLowerCase() === tx.to.toLowerCase())
-
-    if (! state.transactions[account.address]) Vue.set(state.transactions, account.address, [])
-    state.transactions[account.address].push(tx)
-  },
-
   CREATE (state) {
     //
   },
 
   CREATE_OK (state, account) {
     state.accounts.push(Object.assign({}, account, {locked: false}))
+    state.selectedAddress = account.address
   },
 
   CREATE_FAIL (state, error) {
@@ -126,7 +141,39 @@ const mutations = {
   },
 
   CHANGE_ACCOUNT (state, account) {
-    state.selectedAccount = account.address
+    state.selectedAddress = account.address
+  },
+
+  LOCK (state, {address}) {
+    state.accounts.find(a => a.address.toLowerCase() === address.toLowerCase()).locked = true
+  },
+
+  UNLOCK (state, {address}) {
+    state.accounts.find(a => a.address.toLowerCase() === address.toLowerCase()).locked = false
+  },
+
+  LOAD_GLY_BALANCE (state) {
+    //
+  },
+
+  LOAD_GLY_BALANCE_OK (state, {address, balance}) {
+    const idx = state.accounts.findIndex(a => a.address === address)
+    if (idx !== - 1) {
+      Vue.set(state.accounts, idx, Object.assign({}, state.accounts[idx], {balance}))
+      console.log('Vue.set')
+    }
+  },
+
+  LOAD_GLY_BALANCE_FAIL (state, error) {
+    //
+  },
+
+  GLX_TRANSFER (state, tx) {
+    const account = state.accounts.find(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
+      a.address.toLowerCase() === tx.to.toLowerCase())
+
+    if (! state.transactions[account.address]) Vue.set(state.transactions, account.address, [])
+    state.transactions[account.address].push(tx)
   },
 
 }

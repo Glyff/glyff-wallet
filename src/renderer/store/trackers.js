@@ -37,11 +37,13 @@ const actions = {
    * @param commit
    * @param account
    */
-  createTracker ({commit}, account) {
-    commit('CREATE_TRACKER')
+  create ({commit}, account) {
+    commit('CREATE')
     return createTracker().then(tracker => {
-      commit('CREATE_TRACKER_OK', {account, tracker})
+      commit('CREATE_OK', {account, tracker})
       return tracker
+    }).catch(err => {
+      commit('CREATE_FAIL', err)
     })
   },
 
@@ -57,7 +59,7 @@ const actions = {
     return co(function* () {
       yield rootState.accounts.accounts.map(account => {
         if (! state.trackers[account.address]) {
-          return dispatch('createTracker', account)
+          return dispatch('create', account)
         }
       })
     })
@@ -69,12 +71,16 @@ const actions = {
  */
 const mutations = {
 
-  CREATE_TRACKER () {
+  CREATE () {
     //
   },
 
-  CREATE_TRACKER_OK (state, {account, tracker}) {
+  CREATE_OK (state, {account, tracker}) {
     Vue.set(state.trackers, account.address, tracker)
+  },
+
+  CREATE_FAIL () {
+    //
   },
 
   NEW_SHIELDING (state, event) {

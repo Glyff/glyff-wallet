@@ -14,12 +14,12 @@ export const syncChain = () => {
  *
  * @param {Bus} bus
  * @param tracker
- * @param accounts
+ * @param account
  * @param transactions
  * @param tokenContract
  * @return {{event, args}}
  */
-export const checkPastEvents = (bus, tracker, accounts, transactions, tokenContract) => {
+export const checkPastEvents = (bus, tracker, account, transactions, tokenContract) => {
   return co(function* () {
     debug(`Retrieving past events from block ${tracker.lastBlock} to the latest`)
     // TODO use {filter: {from: [12,13]}} to filter by needed account addresses as they are indexed
@@ -33,12 +33,14 @@ export const checkPastEvents = (bus, tracker, accounts, transactions, tokenContr
 
         // Check if event type is what we need
         if (! ['LogTransfer', 'LogShielding', 'LogUnshielding', 'LogShieldedTransfer'].includes(event.event)) return
-        const account = accounts.find(a => [event.returnValues.from.toString().toLowerCase(), event.returnValues.to.toString().toLowerCase()]
-          .includes(a.address.toLowerCase()))
-        // Check if belongs to any account
-        if (! account) return
+
+        // Check if belongs to account
+        if (! [event.returnValues.from.toString().toLowerCase(), event.returnValues.to.toString().toLowerCase()]
+          .includes(account.address.toLowerCase())) return
+
         // Check if transaction already added to an account
         // if (tracker.notes.find(n => n.uuid === event.args.uuid)) return
+
         // Check if note already added to a tracker
         if (tracker.notes.find(n => n.uuid === event.args.uuid)) return
 
@@ -48,10 +50,9 @@ export const checkPastEvents = (bus, tracker, accounts, transactions, tokenContr
         switch (event.event) {
           case 'LogTransfer':
             // Check if transactions already exist
-            if (transactions[account.address] &&
-              transactions[account.address].find(tx => tx.hash === event.transactionHash)) return
+            if (transactions && transactions.find(tx => tx.hash === event.transactionHash)) return
 
-            return bus.emit('gly-transfer', createGlxTransaction(event, account, block.timestamp))
+            return bus.emit('glx-transfer', createGlxTransaction(event, account, block.timestamp))
           case 'LogShielding':
             return bus.emit('shielding', event)
           case 'LogUnshielding':

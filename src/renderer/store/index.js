@@ -26,7 +26,11 @@ const store = new Vuex.Store({
   plugins,
 })
 
-restoreState(store)
+try {
+  restoreState(store)
+} catch (e) {
+  console.warn(e.message)
+}
 
 window.addEventListener('beforeunload', evt => {
   saveState(store.state)

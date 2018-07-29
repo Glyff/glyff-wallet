@@ -1,8 +1,8 @@
 import store from './index'
 import bus from '../bus'
 
-bus.on('gly-transfer', (tx) => {
-  store.dispatch('accounts/glyTransfer', tx)
+bus.on('glx-transfer', (tx) => {
+  store.dispatch('accounts/glxTransfer', tx)
 })
 
 bus.on('shielding', (event) => {

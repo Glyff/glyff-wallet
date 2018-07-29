@@ -6,6 +6,7 @@ import Joi from 'joi'
 import config from '../config'
 import PersistError from '../errors/persist-error'
 import merge from 'lodash-es/merge'
+import web3 from './web3'
 
 const accountsPath = config.homeDir + 'accounts.json'
 const statePath = config.homeDir + 'state.json'
@@ -13,6 +14,7 @@ const statePath = config.homeDir + 'state.json'
 const accountsSchema = Joi.array().items(
   Joi.object().keys({
     name: Joi.string(),
+    balance: Joi.string(),
     address: Joi.string().required(),
   }).options({ stripUnknown: true }) // Remove unknown keys
 )
@@ -29,14 +31,19 @@ const stateSchema = Joi.object().keys({
  */
 const loadAccounts = () => {
   if (! fs.existsSync(accountsPath)) throw new PersistError('Accounts file is missing')
-  const accounts = fs.readJsonSync(accountsPath)
+  const accountsRaw = fs.readJsonSync(accountsPath)
 
-  const result = Joi.validate(accounts, accountsSchema)
+  const result = Joi.validate(accountsRaw, accountsSchema)
   if (result.error) {
     throw new PersistError('Accounts file validation failed')
   }
 
-  return result.value
+  // Process and return accounts data
+  return result.value.map(account => {
+    account.address = web3.utils.toChecksumAddress(account.address)
+    account.balance = new BN(account.balance)
+    return account
+  })
 }
 
 /**
@@ -48,7 +55,7 @@ const loadState = () => {
   // If can't find state file, just return loaded acconts
   if (! fs.existsSync(statePath)) return {}
   const state = fs.readJsonSync(statePath)
-  console.log(state)
+  // console.log(state)
 
   // If state data is not valid, return only loaded accounts
   if (Joi.validate(state, stateSchema).error) return {}
@@ -61,7 +68,7 @@ const loadState = () => {
     })
   })
 
-  console.log(state)
+  // console.log(state)
 
   // TODO Convert trackes notes data
 
@@ -101,8 +108,18 @@ export const restoreState = (store) => {
  * @return {*}
  */
 export const saveState = (state) => {
+  // if (state) return // Dont' sqve state for debugging
   const transactions = merge({}, state.accounts.transactions)
   const trackers = merge({}, state.trackers.trackers)
+
+  // Stringify needed accounts data
+  const accounts = state.accounts.accounts.map(a => {
+    return {
+      name: a.name,
+      address: a.address,
+      balance: a.balance.toString(),
+    }
+  })
 
   // Stringify transactions data
   Object.keys(transactions).forEach(addr => {
@@ -113,7 +130,7 @@ export const saveState = (state) => {
   })
 
   return co(function* () {
-    fs.writeJsonSync(accountsPath, state.accounts.accounts)
+    fs.writeJsonSync(accountsPath, accounts)
     fs.writeJsonSync(statePath, {transactions, trackers})
   })
 }

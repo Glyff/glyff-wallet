@@ -1,6 +1,7 @@
 <template>
   <div>
-    <modal v-model="show" :backdrop="backdrop" title="Create new account">
+    <modal v-model="show" :backdrop="closable" :dismiss-btn="closable" title="Create new account">
+      <div v-if="message" class="alert alert-warning">{{ message }}</div>
       <div class="form-group" :class="{'has-error': hasErrors('name')}">
         <label class="control-label">Account Name</label>
         <input type="text" v-model="name" class="form-control" placeholder="Your account name">
@@ -13,7 +14,7 @@
       </div>
       <div slot="footer" class="text-right">
         <button class="btn btn-primary" @click="create()">Create Account</button>
-        <button class="btn btn-default" @click="show = false">Close</button>
+        <button class="btn btn-default" v-if="closable" @click="show = false">Close</button>
       </div>
     </modal>
 
@@ -23,13 +24,11 @@
 
 <script>
 import {Modal} from 'uiv'
-import {mapActions} from 'vuex'
+import {mapState, mapActions} from 'vuex'
 import pick from 'lodash-es/pick'
 import Validator from 'validatorjs'
 
 export default {
-  name: 'new-account',
-
   components: {
     Modal,
   },
@@ -37,15 +36,28 @@ export default {
   data () {
     return {
       show: false,
-      backdrop: true,
       name: '',
       password: '',
       errors: {},
+      message: '',
+    }
+  },
+
+  beforeMount () {
+    if (! this.accounts.length) {
+      this.show = true
+      this.message = 'You don\'t have any accounts, please create one to proceed'
     }
   },
 
   computed: {
-    //
+    ...mapState({
+      accounts: s => s.accounts.accounts
+    }),
+
+    closable () {
+      return !! this.accounts.length
+    }
   },
 
   methods: {
@@ -57,7 +69,11 @@ export default {
       if (! this.validate()) return
 
       this.createAccount(pick(this, ['name', 'password']))
-        .then(() => (this.show = false))
+        .then(() => {
+          this.show = false
+          this.name = ''
+          this.password = ''
+        })
     },
 
     validate () {

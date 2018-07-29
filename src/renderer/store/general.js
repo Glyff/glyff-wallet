@@ -3,6 +3,7 @@ import web3, {connect as web3Connect} from '../../services/web3'
 import bus from '../bus'
 import {checkPastEvents} from '../../services/blockchain'
 import config from '../../config'
+import map from 'lodash-es/map'
 
 /*
  * State
@@ -15,8 +16,6 @@ const state = {
   appStarting: true,
   startError: null,
   connectionError: null,
-
-  createAccount: false,
 
   oToken: config.token,
   tokenContract: null,
@@ -38,10 +37,6 @@ const actions = {
 
   /**
    * Connect to web3
-   *
-   * @param commit
-   * @param dispatch
-   * @return {*}
    */
   connect ({commit, dispatch}) {
     commit('CONNECT')
@@ -63,20 +58,21 @@ const actions = {
 
   /**
    * Perform app start sequence
-   *
-   * @param commit
-   * @param dispatch
-   * @return {*}
    */
-  start ({commit, dispatch}) {
+  start ({commit, dispatch, rootState}) {
     commit('START')
 
     return co(function* () {
       yield dispatch('connect')
       commit('SET_TOKEN_CONTRACT')
       yield dispatch('accounts/selectIfNotSelected', null, {root: true})
+      dispatch('accounts/checkIfLocked', null, {root: true}) // Don't wait
       yield dispatch('trackers/checkAndCreateTrackers', null, {root: true})
-      yield dispatch('checkPastEvents')
+      rootState.accounts.accounts.forEach(account => dispatch('accounts/loadGlyBalance', account, {root: true}))
+
+      map(rootState.trackers.trackers, (tracker, address) => {
+        dispatch('checkPastEvents', {tracker, address})
+      })
 
       commit('START_OK')
     })
@@ -88,20 +84,12 @@ const actions = {
 
   /**
    * Check past events
-   *
-   * @param commit
-   * @param state
-   * @param rootState
-   * @param getters
-   * @param rootGetters
-   * @return {*}
    */
-  checkPastEvents ({commit, state, rootState, getters, rootGetters}) {
-    commit('CHECK_PAST_EVENTS')
-
+  checkPastEvents ({commit, state, rootState, getters, rootGetters}, {tracker, address}) {
     return co(function* () {
-      yield checkPastEvents(bus, rootGetters['trackers/currentTracker'],
-        rootState.accounts.accounts, rootState.accounts.transactions, state.tokenContract)
+      commit('CHECK_PAST_EVENTS')
+      const account = rootState.accounts.accounts.find(a => a.address === address)
+      yield checkPastEvents(bus, tracker, account, rootState.accounts.transactions[address] || [], state.tokenContract)
       commit('CHECK_PAST_EVENTS_OK')
     })
       .catch(error => {
