@@ -14,10 +14,6 @@
         </transition>
       </div>
     </div>
-    <modal v-model="showError" :backdrop="false" :footer="false" :header="false">
-      <span slot="title">Error</span>
-      <div class="alert alert-danger mb-0">{{ galobalError }}</div>
-    </modal>
   </div>
 </template>
 
@@ -36,30 +32,10 @@ export default {
     GridLoader,
   },
 
-  data () {
-    return {
-      showError: false,
-      galobalError: null,
-    }
-  },
-
   computed: {
     ...mapState({
       globalLoading: s => s.general.globalLoading,
-      connectionError: s => s.general.connectionError,
     })
-  },
-
-  watch: {
-    connectionError (err) {
-      if (err) {
-        this.showError = true
-        this.galobalError = err
-      } else {
-        this.showError = false
-        this.galobalError = null
-      }
-    }
   },
 }
 </script>

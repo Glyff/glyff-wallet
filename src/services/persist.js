@@ -108,7 +108,7 @@ export const restoreState = (store) => {
  * @return {*}
  */
 export const saveState = (state) => {
-  // if (state) return // Dont' sqve state for debugging
+  // if (state) return // Don't save state, for debugging
   const transactions = merge({}, state.accounts.transactions)
   const trackers = merge({}, state.trackers.trackers)
 

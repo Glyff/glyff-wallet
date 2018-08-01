@@ -1,7 +1,7 @@
 import co from 'co'
 import web3, {connect as web3Connect} from '../../services/web3'
 import bus from '../bus'
-import {checkPastEvents} from '../../services/blockchain'
+import {checkPastEvents, syncChain} from '../../services/blockchain'
 import config from '../../config'
 import map from 'lodash-es/map'
 
@@ -49,7 +49,9 @@ const actions = {
           commit('CONNECT_OK')
           connected = true
         } catch (e) {
-          commit('CONNECT_FAIL', 'Could not connect to the node, retrying..')
+          const text = 'Could not connect to the node, retrying...'
+          commit('CONNECT_FAIL', text)
+          dispatch('addToastMessage', {text, type: 'alert'}, {root: true})
           yield new Promise(resolve => setTimeout(resolve, 3000)) // Just wait 3 seconds
         }
       }
@@ -73,6 +75,9 @@ const actions = {
       map(rootState.trackers.trackers, (tracker, address) => {
         dispatch('checkPastEvents', {tracker, address})
       })
+
+      syncChain(rootState.accounts.accounts[0],
+        rootState.accounts.transactions[rootState.accounts.accounts[0].address])
 
       commit('START_OK')
     })

@@ -25,7 +25,10 @@ function createWindow () {
     titleBarStyle: 'hidden',
     width: 1280,
     height: 1024,
-    webPreferences: {webSecurity: false}, // To allow no cors requests (for remote Web3)
+    webPreferences: {
+      webSecurity: false, // To allow no cors requests (for remote Web3)
+      nodeIntegrationInWorker: true,
+    },
   })
 
   mainWindow.loadURL(winURL)

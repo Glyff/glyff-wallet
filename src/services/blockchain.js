@@ -2,11 +2,22 @@ import co from 'co'
 import {decryptBlob} from './note'
 import {createGlxTransaction} from './transaction'
 import web3 from './web3'
+// import store from '../renderer/store'
 
 const debug = require('debug')('blockchain')
 
-export const syncChain = () => {
-  // TODO
+/**
+ * Sync chain for account
+ *
+ * @param account
+ * @param {array} transactions
+ */
+export const syncChain = (account, transactions) => {
+  const worker = new Worker('src/workers/chain-sync.js')
+  worker.postMessage({account, transactions})
+  worker.onmessage = e => {
+    console.log('Message received from worker', e)
+  }
 }
 
 /**
