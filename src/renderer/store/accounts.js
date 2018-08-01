@@ -160,7 +160,6 @@ const mutations = {
     const idx = state.accounts.findIndex(a => a.address === address)
     if (idx !== - 1) {
       Vue.set(state.accounts, idx, Object.assign({}, state.accounts[idx], {balance}))
-      console.log('Vue.set')
     }
   },
 

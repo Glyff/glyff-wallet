@@ -2,7 +2,10 @@ import co from 'co'
 import {decryptBlob} from './note'
 import {createGlxTransaction} from './transaction'
 import web3 from './web3'
+import range from 'lodash-es/range'
 // import store from '../renderer/store'
+// import electronWorkers from 'electron-workers'
+// import ChainSyncWorker from '../workers/chain-sync.worker'
 
 const debug = require('debug')('blockchain')
 
@@ -13,11 +16,74 @@ const debug = require('debug')('blockchain')
  * @param {array} transactions
  */
 export const syncChain = (account, transactions) => {
-  const worker = new Worker('src/workers/chain-sync.js')
-  worker.postMessage({account, transactions})
-  worker.onmessage = e => {
-    console.log('Message received from worker', e)
-  }
+  return co(function* () {
+    const myAddr = account.address
+    const currentBlock = yield web3.eth.getBlockNumber()
+    let n = yield web3.eth.getTransactionCount(myAddr, currentBlock)
+    let bal = yield web3.eth.getBalance(myAddr, currentBlock)
+    const blockBatchSize = 100
+
+    for (let i = currentBlock; i >= 0 && (n > 0 || bal > 0); i = i - blockBatchSize) {
+      try {
+        const fromBlock = i
+        const toBlock = i - blockBatchSize + 1
+        const blocks = yield range(fromBlock, toBlock).map(bn => {
+          if (bn < 0) return
+          return web3.eth.getBlock(bn, true)
+        })
+
+        console.log(`Processing blocks ${fromBlock} to ${toBlock}`)
+
+        blocks.forEach(block => {
+          if (block && block.transactions) {
+            block.transactions.forEach(tx => {
+              if (myAddr === tx.from) {
+                if (tx.from !== tx.to) {
+                  bal = bal.add(tx.value)
+                }
+                console.log(i, tx.from, tx.to, tx.value.toString(10))
+                --n
+              }
+
+              if (myAddr === tx.to) {
+                if (tx.from !== tx.to) {
+                  bal = bal.sub(tx.value)
+                }
+                console.log(i, tx.from, tx.to, tx.value.toString(10))
+              }
+            })
+          }
+        })
+      } catch (e) {
+        console.error('Error in block ' + i, e)
+      }
+    }
+  })
+
+  // const worker = new ChainSyncWorker()
+  // worker.postMessage(JSON.parse(JSON.stringify({account, transactions})))
+  // worker.onmessage = e => {
+  //   console.log('Recieved from worker', e)
+  // }
+
+  // const worker = electronWorkers({
+  //   connectionMode: 'ipc',
+  //   pathToScript: 'src/workers/chain-sync.js',
+  //   timeout: Number.MAX_SAFE_INTEGER,
+  //   numberOfWorkers: 1,
+  // })
+  //
+  // worker.start(startErr => {
+  //   if (startErr) return console.error(startErr)
+  //
+  //   // `electronWorkers` will send your data in a POST request to your electron script
+  //   worker.execute({someData: 'someData'}, (err, data) => {
+  //     if (err) return console.error(err)
+  //
+  //     console.log(JSON.stringify(data)) // { value: 'someData' }
+  //     worker.kill() // kill all workers explicitly
+  //   })
+  // })
 }
 
 /**

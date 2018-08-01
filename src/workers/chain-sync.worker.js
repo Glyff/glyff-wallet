@@ -1,16 +1,20 @@
-const debug = require('../../node_modules/debug/src/index')('chain-sync')
-const web3 = require('../services/web3')
+process.type = 'renderer'
 
-/*
- * Heuristic approach without having to process the entire chain
- */
+const web3 = require('../services/web3')
+const debug = require('debug')('chain-sync')
+
+// /*
+//  * Heuristic approach without having to process the entire chain
+//  */
 const syncChain = (account, transactions) => {
   const myAddr = '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'
   const currentBlock = web3.eth.blockNumber
   let n = web3.eth.getTransactionCount(myAddr, currentBlock)
   let bal = web3.eth.getBalance(myAddr, currentBlock)
 
-  for (let i = currentBlock; i >= 0 && (n > 0 || bal > 0); -- i) {
+  if (! account) return
+
+  for (let i = currentBlock; i >= 0 && (n > 0 || bal > 0); --i) {
     try {
       const block = web3.eth.getBlock(i, true)
 
@@ -21,7 +25,7 @@ const syncChain = (account, transactions) => {
               bal = bal.add(tx.value)
             }
             console.log(i, tx.from, tx.to, tx.value.toString(10))
-            -- n
+            --n
           }
 
           if (myAddr === tx.to) {
@@ -38,8 +42,11 @@ const syncChain = (account, transactions) => {
   }
 }
 
-onmessage = e => {
-  debug('Message received from main script', e)
+self.onmessage = e => {
+  console.log('Message received from main script', e)
+  debug('test')
 
-  postMessage('test')
+  syncChain()
+
+  self.postMessage({foo: 'test'})
 }
