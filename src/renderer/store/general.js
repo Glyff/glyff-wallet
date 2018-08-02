@@ -76,8 +76,7 @@ const actions = {
         dispatch('checkPastEvents', {tracker, address})
       })
 
-      syncChain(rootState.accounts.accounts[0],
-        rootState.accounts.transactions[rootState.accounts.accounts[0].address])
+      syncChain(bus, rootState.accounts.accounts, rootState.accounts.transactions)
 
       commit('START_OK')
     })

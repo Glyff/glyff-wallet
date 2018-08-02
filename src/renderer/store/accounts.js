@@ -110,6 +110,16 @@ const actions = {
     }).catch(err => commit('LOAD_GLY_BALANCE_FAIL', err))
   },
 
+  glyTransfer ({commit, dispatch, getters}, tx) {
+    commit('GLY_TRANSFER', tx)
+    if (tx.direction === 'in') {
+      dispatch('addToastMessage', {
+        text: 'You just recieved ' + fromWei(tx.amount, tx.type) + ' ' + tx.type + ' from ' + tx.from,
+        type: 'success',
+      }, {root: true})
+    }
+  },
+
   glxTransfer ({commit, dispatch, getters}, tx) {
     commit('GLX_TRANSFER', tx)
     if (tx.direction === 'in') {
@@ -168,6 +178,14 @@ const mutations = {
   },
 
   GLX_TRANSFER (state, tx) {
+    const account = state.accounts.find(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
+      a.address.toLowerCase() === tx.to.toLowerCase())
+
+    if (! state.transactions[account.address]) Vue.set(state.transactions, account.address, [])
+    state.transactions[account.address].push(tx)
+  },
+
+  GLY_TRANSFER (state, tx) {
     const account = state.accounts.find(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
       a.address.toLowerCase() === tx.to.toLowerCase())
 

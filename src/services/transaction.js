@@ -32,10 +32,10 @@ export const createGlxTransaction = (event, account, timestamp = null) => {
  * @param timestamp If null, use current time
  * @return {*}
  */
-export const createGLYTransaction = (data, account, timestamp = null) => {
+export const createGlyTransaction = (data, account, timestamp = null) => {
   const tx = {
     type: 'GLY',
-    hash: data.transactionHash,
+    hash: data.transactionHash || data.hash,
     blockNumber: data.blockNumber,
     from: data.from.toString().toLowerCase(),
     to: data.to.toString().toLowerCase(),

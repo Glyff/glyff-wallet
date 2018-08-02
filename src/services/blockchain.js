@@ -1,6 +1,7 @@
 import co from 'co'
+import BN from 'bn.js'
 import {decryptBlob} from './note'
-import {createGlxTransaction} from './transaction'
+import {createGlxTransaction, createGlyTransaction} from './transaction'
 import web3 from './web3'
 import range from 'lodash-es/range'
 // import store from '../renderer/store'
@@ -12,53 +13,74 @@ const debug = require('debug')('blockchain')
 /**
  * Sync chain for account
  *
- * @param account
+ * @param bus
+ * @param accounts
  * @param {array} transactions
  */
-export const syncChain = (account, transactions) => {
+export const syncChain = (bus, accounts, transactions) => {
   return co(function* () {
-    const myAddr = account.address
-    const currentBlock = yield web3.eth.getBlockNumber()
-    let n = yield web3.eth.getTransactionCount(myAddr, currentBlock)
-    let bal = yield web3.eth.getBalance(myAddr, currentBlock)
-    const blockBatchSize = 100
+    const data = {}
+    yield accounts.map(a => {
+      return co(function* () {
+        data[a.address] = {
+          address: a.address,
+          n: yield web3.eth.getTransactionCount(a.address),
+          bal: new BN(yield web3.eth.getBalance(a.address)),
+        }
+      })
+    })
+    const currentBlock = 250000 // yield web3.eth.getBlockNumber()
+    const blockBatchSize = 500
 
-    for (let i = currentBlock; i >= 0 && (n > 0 || bal > 0); i = i - blockBatchSize) {
+    for (let i = currentBlock; i >= 0 && Object.values(data).some(d => d.n > 0 || d.bal > 0); i = i - blockBatchSize) {
       try {
         const fromBlock = i
-        const toBlock = i - blockBatchSize + 1
+        let toBlock = i - blockBatchSize + 1
+        if (toBlock < 0) toBlock = 0
+
+        // Load all blocks simultaneously
         const blocks = yield range(fromBlock, toBlock).map(bn => {
-          if (bn < 0) return
           return web3.eth.getBlock(bn, true)
         })
 
         console.log(`Processing blocks ${fromBlock} to ${toBlock}`)
 
         blocks.forEach(block => {
-          if (block && block.transactions) {
+          if (! block || ! block.transactions.length) return
+
+          try {
             block.transactions.forEach(tx => {
-              if (myAddr === tx.from) {
+              // If tx from address is in our data object then emit new outgoing transaction
+              if (data[tx.from]) {
                 if (tx.from !== tx.to) {
-                  bal = bal.add(tx.value)
+                  data[tx.from].bal = data[tx.from].bal.add(new BN(tx.value))
                 }
-                console.log(i, tx.from, tx.to, tx.value.toString(10))
-                --n
+                bus.emit('gly-transfer', createGlyTransaction(tx, data[tx.from], block.timestamp))
+                data[tx.from].n-- // Reduce transactions number for the address
               }
 
-              if (myAddr === tx.to) {
+              // If tx from address is in our data object then emit new incoming transaction
+              if (data[tx.to]) {
                 if (tx.from !== tx.to) {
-                  bal = bal.sub(tx.value)
+                  console.log(tx)
+                  data[tx.to].bal = data[tx.to].bal.sub(new BN(tx.value))
                 }
-                console.log(i, tx.from, tx.to, tx.value.toString(10))
+                bus.emit('gly-transfer', createGlyTransaction(tx, data[tx.to], block.timestamp))
               }
             })
+          } catch (e) {
+            console.error('Error in block ' + i, e)
           }
         })
+
+        bus.emit('synced-blocks-to', toBlock)
       } catch (e) {
-        console.error('Error in block ' + i, e)
+        console.error('Error in block batch ' + i, e)
       }
     }
   })
+
+  // 249095 "0xB07C814757978d4FC8d8523539C2a1a38ECEfF05" "0x82D058df078b4B524b485f109AE474B515B1C021" "10000000000000000000"
 
   // const worker = new ChainSyncWorker()
   // worker.postMessage(JSON.parse(JSON.stringify({account, transactions})))
