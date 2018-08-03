@@ -13,3 +13,10 @@ $sides: (top, bottom, left, right); // Leave this variable alone
       }
    }
 }
+
+.clickable { cursor: pointer; }
+
+.color-primaary { color: $brand-primary; }
+.color-info { color: $brand-info; }
+.color-warning { color: $brand-warning; }
+.color-danger { color: $brand-danger; }

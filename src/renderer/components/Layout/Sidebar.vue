@@ -20,7 +20,6 @@
                      :allow-empty="false"
                      :show-labels="false"
         ></multiselect>
-        <new-account></new-account>
       </div>
       <!-- End Profile Info Block -->
     </div>
@@ -30,6 +29,7 @@
         <!-- Begin Navigation -->
         <ul id="navigation">
           <router-link tag="li" to="/"><a><img src="@/assets/images/overview-icon.png" title="Overview"> Overview</a></router-link>
+          <router-link tag="li" to="/accounts"><a><img src="@/assets/images/settings-icon.png" title="Accounts"> Accounts</a></router-link>
           <router-link tag="li" to="/send"><a><img src="@/assets/images/send-icon.png" title="Send"> Send</a></router-link>
           <router-link tag="li" to="/receive"><a><img src="@/assets/images/receive-icon.png" title="Receive"> Receive</a></router-link>
           <router-link tag="li" to="/shield"><a><img src="@/assets/images/shield-icon.png" title="Shield"> Shield</a></router-link>
@@ -45,12 +45,10 @@
 <script>
 import Multiselect from 'vue-multiselect/src/Multiselect.vue'
 import { mapState, mapGetters, mapMutations } from 'vuex'
-import NewAccount from '../Accounts/NewAccount'
 
 export default {
   components: {
     Multiselect,
-    NewAccount,
   },
 
   computed: {

@@ -79,9 +79,31 @@ const actions = {
   checkIfLocked ({commit, state}) {
     state.accounts.map(a => {
       isUnlocked(a).then(unlocked => {
-        if (unlocked) commit('UNLOCK', a)
-        else commit('LOCK', a)
+        if (unlocked) commit('UNLOCK_OK', a)
+        else commit('LOCK_OK', a)
       })
+    })
+  },
+
+  unlock ({commit}, {account, password}) {
+    return co(function* () {
+      commit('UNLOCK')
+      yield web3.eth.personal.unlockAccount(account.address, password)
+      commit('UNLOCK_OK', account)
+    }).catch(e => {
+      commit('UNLOCK_FAIL', e)
+      throw e
+    })
+  },
+
+  lock ({commit}, account) {
+    return co(function* () {
+      commit('LOCK')
+      yield web3.eth.personal.lockAccount(account.address)
+      commit('LOCK_OK', account)
+    }).catch(e => {
+      commit('LOCK_FAIL', e)
+      throw e
     })
   },
 
@@ -154,12 +176,28 @@ const mutations = {
     state.selectedAddress = account.address
   },
 
-  LOCK (state, {address}) {
+  LOCK (state, account) {
+    //
+  },
+
+  LOCK_OK (state, {address}) {
     state.accounts.find(a => a.address.toLowerCase() === address.toLowerCase()).locked = true
   },
 
-  UNLOCK (state, {address}) {
+  LOCK_FAIL (state, account) {
+    //
+  },
+
+  UNLOCK (state, account) {
+    //
+  },
+
+  UNLOCK_OK (state, {address}) {
     state.accounts.find(a => a.address.toLowerCase() === address.toLowerCase()).locked = false
+  },
+
+  UNLOCK_FAIL (state, account) {
+    //
   },
 
   LOAD_GLY_BALANCE (state) {

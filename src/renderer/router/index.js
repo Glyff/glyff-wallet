@@ -11,6 +11,11 @@ export default new Router({
       component: require('@/components/Overview/Overview').default
     },
     {
+      path: '/accounts',
+      name: 'accounts',
+      component: require('@/components/Accounts/Accounts').default
+    },
+    {
       path: '/send',
       name: 'send',
       component: require('@/components/Send/Send').default

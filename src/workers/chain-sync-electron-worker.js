@@ -1,3 +1,4 @@
+/* eslint-disable */
 const debug = require('../../node_modules/debug/src/index')('chain-sync')
 const web3 = require('../services/web3')
 const app = require('electron').app

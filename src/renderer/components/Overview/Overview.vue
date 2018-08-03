@@ -9,7 +9,7 @@
     </div>
     <balances></balances>
     <div class="simple-panel">
-      <table class="table">
+      <table class="table table-hover">
         <thead>
         <tr>
           <th>Txtid</th>
@@ -20,7 +20,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="tx in transactionsPage">
+        <tr class="clickable" v-for="tx in transactionsPage" @click="selectedTx = tx; showDetails = true">
           <td>{{ tx.hash }}</td>
           <td>{{ tx.direction }}</td>
           <td>{{ tx.amount | ether(tx.type.toLowerCase(), tx.type) }}</td>
@@ -34,26 +34,30 @@
       </table>
     </div>
     <div class="row">
-      <div id="pagination">
+      <div id="pagination" v-if="totalPages > 1">
         <ul>
-          <li><a href="#" @click.prevent="nextPage" :disabled="page === 1">Previous</a> </li>
-          <li><a href="#" @click.prevent="prevPage" :disabled="page === totalPages">Next</a> </li>
-          <li><a href="#" @click.prevent="showAll = ! showAll">All Transactions</a> </li>
+          <li v-if="! showAll"><a href="#" @click.prevent="prevPage" :disabled="page === 1">Previous</a> </li>
+          <li v-if="! showAll"><a href="#" @click.prevent="nextPage" :disabled="page === totalPages">Next</a> </li>
+          <li><a href="#" @click.prevent="showAll = ! showAll">
+            <span v-if="showAll">Show pages</span>
+            <span v-else>All Transactions</span>
+          </a></li>
         </ul>
       </div>
     </div>
+    <transaction-modal :tx="selectedTx" v-model="showDetails"></transaction-modal>
   </div>
 </template>
 
 <script>
 import {mapGetters} from 'vuex'
 import Balances from '../Layout/Balances'
+import TransactionModal from './TransactionModal'
 
 export default {
-  name: 'overview',
-
   components: {
     Balances,
+    TransactionModal,
   },
 
   data () {
@@ -61,6 +65,8 @@ export default {
       page: 1,
       pageSize: 20,
       showAll: false,
+      selectedTx: {},
+      showDetails: false,
     }
   },
 
@@ -81,7 +87,7 @@ export default {
 
       if (this.showAll) return sorted
 
-      return sorted.slice(this.page - 1, this.page * this.pageSize - 1)
+      return sorted.slice((this.page - 1) * this.pageSize, this.page * this.pageSize - 1)
     },
   },
 
