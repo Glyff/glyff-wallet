@@ -1,7 +1,7 @@
 import co from 'co'
 import web3, {connect as web3Connect} from '../../services/web3'
 import bus from '../bus'
-import {checkPastEvents, syncChain} from '../../services/blockchain'
+import {checkPastEvents, syncChain, syncChainHeuristic} from '../../services/blockchain'
 import config from '../../config'
 import map from 'lodash-es/map'
 
@@ -67,16 +67,29 @@ const actions = {
     return co(function* () {
       yield dispatch('connect')
       commit('SET_TOKEN_CONTRACT')
+      commit('accounts/UPDATE_LAST_BLOCK', yield web3.eth.getBlockNumber(), {root: true})
       yield dispatch('accounts/selectIfNotSelected', null, {root: true})
       dispatch('accounts/checkIfLocked', null, {root: true}) // Don't wait
       yield dispatch('trackers/checkAndCreateTrackers', null, {root: true})
       rootState.accounts.accounts.forEach(account => dispatch('accounts/loadGlyBalance', account, {root: true}))
 
+      // Check past events for each tracker
       map(rootState.trackers.trackers, (tracker, address) => {
         dispatch('checkPastEvents', {tracker, address})
       })
 
-      syncChain(bus, rootState.accounts.accounts, rootState.accounts.transactions)
+      if (rootState.accounts.accounts.length) {
+        // Use heuristic chain sync for initial syncing or normal for consecutive syncs
+        if (rootState.accounts.currentBlock === null) {
+          syncChainHeuristic(bus, rootState.accounts.accounts, rootState.accounts.transactions).then(currentBlock => {
+            commit('accounts/UPDATE_CURRENT_BLOCK', currentBlock, {root: true})
+          })
+        } else if (rootState.accounts.currentBlock !== rootState.accounts.lastBlock) {
+          syncChain(bus, rootState.accounts.accounts, rootState.accounts.transactions, rootState.accounts.currentBlock).then(currentBlock => {
+            commit('accounts/UPDATE_CURRENT_BLOCK', currentBlock, {root: true})
+          })
+        }
+      }
 
       commit('START_OK')
     })

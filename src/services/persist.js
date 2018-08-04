@@ -88,6 +88,7 @@ export const restoreState = (store) => {
     accounts: {
       accounts,
       transactions: state.transactions,
+      currentBlock: state.currentBlock,
     },
     trackers: {
       trackers: state.trackers,
@@ -129,8 +130,14 @@ export const saveState = (state) => {
     })
   })
 
+  const stateData = {
+    transactions,
+    trackers,
+    currentBlock: state.accounts.currentBlock,
+  }
+
   return co(function* () {
     fs.writeJsonSync(accountsPath, accounts)
-    fs.writeJsonSync(statePath, {transactions, trackers})
+    fs.writeJsonSync(statePath, stateData)
   })
 }

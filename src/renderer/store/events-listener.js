@@ -20,3 +20,7 @@ bus.on('unshielding', (event) => {
 bus.on('shielded-transfer', (event) => {
   console.log('shielded-transfer')
 })
+
+bus.on('synced-blocks-to', (block) => {
+  store.commit('accounts/UPDADE_SYNCING_BLOCK', block)
+})

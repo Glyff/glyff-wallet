@@ -39,6 +39,8 @@
       </div>
       <!-- End Navigation Block -->
     </div>
+    <p class="text-center mt-40">Last block: {{ lastBlock }}</p>
+    <p class="text-center" v-if="syncingBlock">Syncing block: {{ syncingBlock }}</p>
   </div>
 </template>
 
@@ -54,6 +56,8 @@ export default {
   computed: {
     ...mapState({
       accounts: s => s.accounts.accounts,
+      lastBlock: s => s.accounts.lastBlock,
+      syncingBlock: s => s.accounts.syncingBlock,
     }),
 
     ...mapGetters({

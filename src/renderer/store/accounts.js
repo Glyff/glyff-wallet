@@ -20,6 +20,10 @@ const state = {
   selectedAddress: null,
 
   transactions: {},
+
+  currentBlock: null,
+  lastBlock: null,
+  syncingBlock: null,
 }
 
 /*
@@ -125,6 +129,10 @@ const actions = {
     })
   },
 
+  update ({commit}, data) {
+    commit('UPDATE_OK', data)
+  },
+
   loadGlyBalance ({commit}, {address}) {
     return co(function* () {
       commit('LOAD_GLY_BALANCE')
@@ -170,6 +178,10 @@ const mutations = {
 
   CREATE_FAIL (state, error) {
     //
+  },
+
+  UPDATE_OK (state, data) {
+    state.accounts.find(a => a.address === data.address).name = data.name
   },
 
   CHANGE_ACCOUNT (state, account) {
@@ -231,6 +243,18 @@ const mutations = {
     state.transactions[account.address].push(tx)
   },
 
+  UPDATE_CURRENT_BLOCK (state, currentBlock) {
+    state.currentBlock = currentBlock
+    state.syncingBlock = null // Current block is updated after syncing is finished
+  },
+
+  UPDATE_LAST_BLOCK (state, lastBlock) {
+    state.lastBlock = lastBlock
+  },
+
+  UPDADE_SYNCING_BLOCK (state, syncingBlock) {
+    state.syncingBlock = syncingBlock
+  },
 }
 
 export default {
