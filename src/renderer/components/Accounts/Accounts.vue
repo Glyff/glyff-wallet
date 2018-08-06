@@ -34,7 +34,6 @@
         </tbody>
       </table>
       <edit-account :account="selectedAccount" v-model="showEdit"></edit-account>
-      <unlock-account :account="selectedAccount" v-model="showUnlock"></unlock-account>
     </div>
   </div>
 </template>
@@ -42,21 +41,18 @@
 <script>
 import Balances from '../Layout/Balances'
 import EditAccount from './EditAccount'
-import UnlockAccount from './UnlockAccount'
 import NewAccount from './NewAccount'
-import {mapState, mapActions} from 'vuex'
+import {mapState, mapActions, mapMutations} from 'vuex'
 
 export default {
   components: {
     Balances,
     NewAccount,
     EditAccount,
-    UnlockAccount,
   },
 
   data () {
     return {
-      showUnlock: false,
       showEdit: false,
       selectedAccount: {},
     }
@@ -70,6 +66,11 @@ export default {
 
   methods: {
 
+    ...mapMutations({
+      changeAccount: 'accounts/CHANGE_ACCOUNT',
+      showUnlock: 'accounts/SHOW_UNLOCK',
+    }),
+
     ...mapActions({
       unlockAccount: 'accounts/unlock',
     }),
@@ -80,8 +81,8 @@ export default {
     },
 
     unlock (account) {
-      this.selectedAccount = account
-      this.showUnlock = true
+      this.changeAccount(account)
+      this.showUnlock()
     },
   },
 }

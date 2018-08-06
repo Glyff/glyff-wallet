@@ -14,6 +14,7 @@
         </transition>
       </div>
     </div>
+    <unlock-account></unlock-account>
   </div>
 </template>
 
@@ -22,6 +23,7 @@ import {Modal} from 'uiv'
 import {mapState} from 'vuex'
 import Toast from './Toast'
 import Sidebar from './Sidebar'
+import UnlockAccount from '../Accounts/UnlockAccount'
 import GridLoader from 'vue-spinner/src/GridLoader.vue'
 
 export default {
@@ -30,6 +32,7 @@ export default {
     Sidebar,
     Modal,
     GridLoader,
+    UnlockAccount,
   },
 
   computed: {

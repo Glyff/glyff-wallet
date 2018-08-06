@@ -24,6 +24,8 @@ const state = {
   currentBlock: null,
   lastBlock: null,
   syncingBlock: null,
+
+  showUnlock: false,
 }
 
 /*
@@ -160,6 +162,29 @@ const actions = {
     }
   },
 
+  sendGly ({commit, state}, data) {
+    return co(function* () {
+      commit('general/START_LOADING', null, {root: true})
+      commit('SEND_GLY')
+      const atts = {
+        from: state.selectedAddress,
+        to: data.recipient,
+        value: web3.utils.toWei(data.amount),
+        gasPrice: data.gasPrice * 1000000000,
+        gasLimit: 21000,
+      }
+      console.log(atts)
+      const tx = yield web3.eth.sendTransaction(atts)
+      console.log(tx)
+      commit('SEND_GLY_OK', tx)
+    }).catch(err => {
+      commit('SEND_GLY_FAIL', err)
+      throw err
+    }).finally(() => {
+      commit('general/STOP_LOADING', null, {root: true})
+    })
+  },
+
 }
 
 /*
@@ -186,6 +211,14 @@ const mutations = {
 
   CHANGE_ACCOUNT (state, account) {
     state.selectedAddress = account.address
+  },
+
+  SHOW_UNLOCK (state) {
+    state.showUnlock = true
+  },
+
+  HIDE_UNLOCK (state) {
+    state.showUnlock = false
   },
 
   LOCK (state, account) {
@@ -241,6 +274,18 @@ const mutations = {
 
     if (! state.transactions[account.address]) Vue.set(state.transactions, account.address, [])
     state.transactions[account.address].push(tx)
+  },
+
+  SEND_GLY (state) {
+    //
+  },
+
+  SEND_GLY_OK (state, tx) {
+    //
+  },
+
+  SEND_GLY_FAIL (state, err) {
+    //
   },
 
   UPDATE_CURRENT_BLOCK (state, currentBlock) {
