@@ -25,13 +25,13 @@ export default {
   computed: {
     ...mapState({
       // tBalance: s => s.general.tBalance,
-      // glyBalance: s => s.accounts.sBalance,
+      // glyBalance: s => s.sBalance,
       accounts: s => s.accounts.accounts,
     }),
 
     ...mapGetters({
-      glyBalance: 'accounts/glyBalance',
-      glxBalance: 'accounts/glxBalance',
+      glyBalance: 'glyBalance',
+      glxBalance: 'glxBalance',
     }),
   }
 }

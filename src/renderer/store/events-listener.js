@@ -2,11 +2,11 @@ import store from './index'
 import bus from '../bus'
 
 bus.on('gly-transfer', (tx) => {
-  store.dispatch('accounts/glyTransfer', tx)
+  store.dispatch('glyTransfer', tx)
 })
 
 bus.on('glx-transfer', (tx) => {
-  store.dispatch('accounts/glxTransfer', tx)
+  store.dispatch('glxTransfer', tx)
 })
 
 bus.on('shielding', (event) => {
@@ -22,5 +22,5 @@ bus.on('shielded-transfer', (event) => {
 })
 
 bus.on('synced-blocks-to', (block) => {
-  store.commit('accounts/UPDADE_SYNCING_BLOCK', block)
+  store.commit('UPDADE_SYNCING_BLOCK', block)
 })

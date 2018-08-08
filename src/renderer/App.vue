@@ -25,9 +25,9 @@ export default {
 
   methods: {
     ...mapActions({
-      // connect: 'general/connect',
-      start: 'general/start',
-      checkPastEvents: 'general/checkPastEvents',
+      // connect: 'connect',
+      start: 'start',
+      // checkPastEvents: 'checkPastEvents',
     }),
   },
 }

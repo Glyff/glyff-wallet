@@ -72,8 +72,8 @@ export default {
 
   computed: {
     ...mapGetters({
-      account: 'accounts/currentAccount',
-      transactions: 'accounts/currentAccountTransactions',
+      account: 'currentAccount',
+      transactions: 'currentAccountTransactions',
     }),
 
     totalPages () {

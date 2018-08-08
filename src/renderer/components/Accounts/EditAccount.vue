@@ -42,7 +42,7 @@ export default {
 
   methods: {
     ...mapActions({
-      updateAccount: 'accounts/update',
+      updateAccount: 'update',
     }),
 
     update () {

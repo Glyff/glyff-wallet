@@ -76,63 +76,62 @@ const getters = {
  */
 const actions = {
 
-  selectIfNotSelected ({commit, state}) {
+  selectAccountIfNotSelected ({commit, state}) {
     if (state.accounts.length) {
       commit('CHANGE_ACCOUNT', state.accounts[0])
     }
   },
 
-  checkIfLocked ({commit, state}) {
+  checkIfAccountsLocked ({commit, state}) {
     state.accounts.map(a => {
       isUnlocked(a).then(unlocked => {
-        if (unlocked) commit('UNLOCK_OK', a)
-        else commit('LOCK_OK', a)
+        if (unlocked) commit('UNLOCK_ACCOUNT_OK', a)
+        else commit('LOCK_ACCOUNT_OK', a)
       })
     })
   },
 
-  unlock ({commit}, {account, password}) {
+  unlockAccount ({commit}, {account, password}) {
     return co(function* () {
-      commit('UNLOCK')
+      commit('START_LOADING')
+      commit('UNLOCK_ACCOUNT')
       yield web3.eth.personal.unlockAccount(account.address, password)
-      commit('UNLOCK_OK', account)
+      commit('UNLOCK_ACCOUNT_OK', account)
     }).catch(e => {
-      commit('UNLOCK_FAIL', e)
+      commit('UNLOCK_ACCOUNT_FAIL', e)
       throw e
-    })
+    }).finally(() => commit('STOP_LOADING'))
   },
 
-  lock ({commit}, account) {
+  lockAccount ({commit}, account) {
     return co(function* () {
-      commit('LOCK')
+      commit('LOCK_ACCOUNT')
       yield web3.eth.personal.lockAccount(account.address)
-      commit('LOCK_OK', account)
+      commit('LOCK_ACCOUNT_OK', account)
     }).catch(e => {
-      commit('LOCK_FAIL', e)
+      commit('LOCK_ACCOUNT_FAIL', e)
       throw e
     })
   },
 
   create ({commit, dispatch}, {name, password}) {
     return co(function* () {
-      commit('general/START_LOADING', null, {root: true})
-      commit('CREATE')
+      commit('START_LOADING')
+      commit('CREATE_ACCOUNT')
       const address = yield web3.eth.personal.newAccount(password)
       const account = {name, address}
-      commit('CREATE_OK', account)
+      commit('CREATE_ACCOUNT_OK', account)
       yield dispatch('loadGlyBalance', account)
-      yield dispatch('trackers/create', account, {root: true})
-      yield dispatch('general/checkPastEvents', null, {root: true})
-    }).then(() => {
-      commit('general/STOP_LOADING', null, {root: true})
+      yield dispatch('createTracker', account, {root: true})
+      yield dispatch('checkPastEvents')
     }).catch(err => {
-      commit('CREATE_FAIL', err)
+      commit('CREATE_ACCOUNT_FAIL', err)
       throw err
-    })
+    }).finally(() => commit('STOP_LOADING'))
   },
 
-  update ({commit}, data) {
-    commit('UPDATE_OK', data)
+  updateAccount ({commit}, data) {
+    commit('UPDATE_ACCOUNT_OK', data)
   },
 
   loadGlyBalance ({commit}, {address}) {
@@ -164,7 +163,7 @@ const actions = {
 
   sendGly ({commit, state}, data) {
     return co(function* () {
-      commit('general/START_LOADING', null, {root: true})
+      commit('START_LOADING')
       commit('SEND_GLY')
       const atts = {
         from: state.selectedAddress,
@@ -181,7 +180,7 @@ const actions = {
       commit('SEND_GLY_FAIL', err)
       throw err
     }).finally(() => {
-      commit('general/STOP_LOADING', null, {root: true})
+      commit('STOP_LOADING')
     })
   },
 
@@ -192,20 +191,20 @@ const actions = {
  */
 const mutations = {
 
-  CREATE (state) {
+  CREATE_ACCOUNT (state) {
     //
   },
 
-  CREATE_OK (state, account) {
+  CREATE_ACCOUNT_OK (state, account) {
     state.accounts.push(Object.assign({}, account, {locked: false}))
     state.selectedAddress = account.address
   },
 
-  CREATE_FAIL (state, error) {
+  CREATE_ACCOUNT_FAIL (state, error) {
     //
   },
 
-  UPDATE_OK (state, data) {
+  UPDATE_ACCOUNT_OK (state, data) {
     state.accounts.find(a => a.address === data.address).name = data.name
   },
 
@@ -221,27 +220,27 @@ const mutations = {
     state.showUnlock = false
   },
 
-  LOCK (state, account) {
+  LOCK_ACCOUNT (state, account) {
     //
   },
 
-  LOCK_OK (state, {address}) {
+  LOCK_ACCOUNT_OK (state, {address}) {
     state.accounts.find(a => a.address.toLowerCase() === address.toLowerCase()).locked = true
   },
 
-  LOCK_FAIL (state, account) {
+  LOCK_ACCOUNT_FAIL (state, account) {
     //
   },
 
-  UNLOCK (state, account) {
+  UNLOCK_ACCOUNT (state, account) {
     //
   },
 
-  UNLOCK_OK (state, {address}) {
+  UNLOCK_ACCOUNT_OK (state, {address}) {
     state.accounts.find(a => a.address.toLowerCase() === address.toLowerCase()).locked = false
   },
 
-  UNLOCK_FAIL (state, account) {
+  UNLOCK_ACCOUNT_FAIL (state, account) {
     //
   },
 
@@ -307,5 +306,4 @@ export default {
   getters,
   actions,
   mutations,
-  namespaced: true,
 }

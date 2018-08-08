@@ -81,12 +81,12 @@ export default {
 
   methods: {
     ...mapActions({
-      sendGly: 'accounts/sendGly',
+      sendGly: 'sendGly',
       toast: 'addToastMessage',
     }),
 
     ...mapMutations({
-      showUnlock: 'accounts/SHOW_UNLOCK',
+      showUnlock: 'SHOW_UNLOCK',
     }),
 
     send () {

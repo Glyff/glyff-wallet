@@ -37,21 +37,21 @@ export default {
 
   computed: {
     ...mapState({
-      value: s => s.accounts.showUnlock,
+      value: s => s.showUnlock,
     }),
 
     ...mapGetters({
-      account: 'accounts/currentAccount',
+      account: 'currentAccount',
     }),
   },
 
   methods: {
     ...mapActions({
-      unlockAccount: 'accounts/unlock',
+      unlockAccount: 'unlock',
     }),
 
     ...mapMutations({
-      hideUnlock: 'accounts/HIDE_UNLOCK',
+      hideUnlock: 'HIDE_UNLOCK',
     }),
 
     unlock () {

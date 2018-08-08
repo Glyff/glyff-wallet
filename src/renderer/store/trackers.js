@@ -37,13 +37,13 @@ const actions = {
    * @param commit
    * @param account
    */
-  create ({commit}, account) {
-    commit('CREATE')
+  createTracker ({commit}, account) {
+    commit('CREATE_TRACKER')
     return createTracker().then(tracker => {
-      commit('CREATE_OK', {account, tracker})
+      commit('CREATE_TRACKER_OK', {account, tracker})
       return tracker
     }).catch(err => {
-      commit('CREATE_FAIL', err)
+      commit('CREATE_TRACKER_FAIL', err)
     })
   },
 
@@ -71,15 +71,15 @@ const actions = {
  */
 const mutations = {
 
-  CREATE () {
+  CREATE_TRACKER () {
     //
   },
 
-  CREATE_OK (state, {account, tracker}) {
+  CREATE_TRACKER_OK (state, {account, tracker}) {
     Vue.set(state.trackers, account.address, tracker)
   },
 
-  CREATE_FAIL () {
+  CREATE_TRACKER_FAIL () {
     //
   },
 
@@ -94,5 +94,4 @@ export default {
   getters,
   actions,
   mutations,
-  namespaced: true,
 }

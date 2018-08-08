@@ -51,7 +51,7 @@ const actions = {
         } catch (e) {
           const text = 'Could not connect to the node, retrying...'
           commit('CONNECT_FAIL', text)
-          dispatch('addToastMessage', {text, type: 'alert'}, {root: true})
+          dispatch('addToastMessage', {text, type: 'danger'})
           yield new Promise(resolve => setTimeout(resolve, 3000)) // Just wait 3 seconds
         }
       }
@@ -67,11 +67,11 @@ const actions = {
     return co(function* () {
       yield dispatch('connect')
       commit('SET_TOKEN_CONTRACT')
-      commit('accounts/UPDATE_LAST_BLOCK', yield web3.eth.getBlockNumber(), {root: true})
-      yield dispatch('accounts/selectIfNotSelected', null, {root: true})
-      dispatch('accounts/checkIfLocked', null, {root: true}) // Don't wait
-      yield dispatch('trackers/checkAndCreateTrackers', null, {root: true})
-      rootState.accounts.accounts.forEach(account => dispatch('accounts/loadGlyBalance', account, {root: true}))
+      commit('UPDATE_LAST_BLOCK', yield web3.eth.getBlockNumber())
+      dispatch('selectAccountIfNotSelected')
+      dispatch('checkIfAccountsLocked') // Don't wait
+      yield dispatch('checkAndCreateTrackers')
+      rootState.accounts.accounts.forEach(account => dispatch('loadGlyBalance', account))
 
       // Check past events for each tracker
       map(rootState.trackers.trackers, (tracker, address) => {
@@ -82,11 +82,11 @@ const actions = {
         // Use heuristic chain sync for initial syncing or normal for consecutive syncs
         if (rootState.accounts.currentBlock === null) {
           syncChainHeuristic(bus, rootState.accounts.accounts, rootState.accounts.transactions).then(currentBlock => {
-            commit('accounts/UPDATE_CURRENT_BLOCK', currentBlock, {root: true})
+            commit('UPDATE_CURRENT_BLOCK', currentBlock)
           })
         } else if (rootState.accounts.currentBlock !== rootState.accounts.lastBlock) {
           syncChain(bus, rootState.accounts.accounts, rootState.accounts.transactions, rootState.accounts.currentBlock).then(currentBlock => {
-            commit('accounts/UPDATE_CURRENT_BLOCK', currentBlock, {root: true})
+            commit('UPDATE_CURRENT_BLOCK', currentBlock)
           })
         }
       }
@@ -182,5 +182,4 @@ export default {
   getters,
   actions,
   mutations,
-  namespaced: true,
 }

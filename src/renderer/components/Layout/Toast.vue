@@ -3,7 +3,7 @@
   .toast{
     position: fixed;
     width: $width;
-    z-index: 10000;
+    z-index: 999999;
   }
   .toast-message{
     position: relative;

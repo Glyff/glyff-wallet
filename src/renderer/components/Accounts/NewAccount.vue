@@ -52,7 +52,7 @@ export default {
 
   computed: {
     ...mapState({
-      accounts: s => s.accounts.accounts
+      accounts: s => s.accounts
     }),
 
     closable () {
@@ -62,7 +62,7 @@ export default {
 
   methods: {
     ...mapActions({
-      createAccount: 'accounts/create',
+      createAccount: 'create',
     }),
 
     create () {

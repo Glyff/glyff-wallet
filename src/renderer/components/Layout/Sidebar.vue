@@ -61,13 +61,13 @@ export default {
     }),
 
     ...mapGetters({
-      currentAccount: 'accounts/currentAccount',
+      currentAccount: 'currentAccount',
     })
   },
 
   methods: {
     ...mapMutations({
-      changeAccount: 'accounts/CHANGE_ACCOUNT',
+      changeAccount: 'CHANGE_ACCOUNT',
     }),
   },
 }

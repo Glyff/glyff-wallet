@@ -67,12 +67,12 @@ export default {
   methods: {
 
     ...mapMutations({
-      changeAccount: 'accounts/CHANGE_ACCOUNT',
-      showUnlock: 'accounts/SHOW_UNLOCK',
+      changeAccount: 'CHANGE_ACCOUNT',
+      showUnlock: 'SHOW_UNLOCK',
     }),
 
     ...mapActions({
-      unlockAccount: 'accounts/unlock',
+      unlockAccount: 'unlockAccount',
     }),
 
     edit (account) {
