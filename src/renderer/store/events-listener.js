@@ -24,3 +24,7 @@ bus.on('shielded-transfer', (event) => {
 bus.on('synced-blocks-to', (block) => {
   store.commit('UPDADE_SYNCING_BLOCK', block)
 })
+
+bus.on('synced-blocks-from', (block) => {
+  store.commit('UPDADE_SYNCING_BLOCK', block)
+})

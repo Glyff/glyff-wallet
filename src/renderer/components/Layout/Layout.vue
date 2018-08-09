@@ -15,6 +15,7 @@
       </div>
     </div>
     <unlock-account></unlock-account>
+    <new-account></new-account>
   </div>
 </template>
 
@@ -24,6 +25,7 @@ import {mapState} from 'vuex'
 import Toast from './Toast'
 import Sidebar from './Sidebar'
 import UnlockAccount from '../Accounts/UnlockAccount'
+import NewAccount from '../Accounts/NewAccount'
 import GridLoader from 'vue-spinner/src/GridLoader.vue'
 
 export default {
@@ -33,6 +35,7 @@ export default {
     Modal,
     GridLoader,
     UnlockAccount,
+    NewAccount,
   },
 
   computed: {

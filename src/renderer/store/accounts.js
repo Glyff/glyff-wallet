@@ -26,6 +26,7 @@ const state = {
   syncingBlock: null,
 
   showUnlock: false,
+  showNewAccount: false,
 }
 
 /*
@@ -114,7 +115,7 @@ const actions = {
     })
   },
 
-  create ({commit, dispatch}, {name, password}) {
+  createAccount ({commit, dispatch}, {name, password}) {
     return co(function* () {
       commit('START_LOADING')
       commit('CREATE_ACCOUNT')
@@ -122,8 +123,8 @@ const actions = {
       const account = {name, address}
       commit('CREATE_ACCOUNT_OK', account)
       yield dispatch('loadGlyBalance', account)
-      yield dispatch('createTracker', account, {root: true})
-      yield dispatch('checkPastEvents')
+      const tracker = yield dispatch('createTracker', account)
+      yield dispatch('checkPastEvents', {tracker, address})
     }).catch(err => {
       commit('CREATE_ACCOUNT_FAIL', err)
       throw err
@@ -218,6 +219,14 @@ const mutations = {
 
   HIDE_UNLOCK (state) {
     state.showUnlock = false
+  },
+
+  SHOW_NEW_ACCOUNT (state) {
+    state.showNewAccount = true
+  },
+
+  HIDE_NEW_ACCOUNT (state) {
+    state.showNewAccount = false
   },
 
   LOCK_ACCOUNT (state, account) {

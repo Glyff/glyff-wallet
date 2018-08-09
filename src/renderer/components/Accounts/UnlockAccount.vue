@@ -1,5 +1,5 @@
 <template>
-  <modal :value="value" @input="hideUnlock()" title="Unlock Account">
+  <modal :value="show" @input="hideUnlock()" title="Unlock Account">
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div class="form-group">
       <label class="control-label">Password</label>
@@ -30,14 +30,14 @@ export default {
   },
 
   watch: {
-    value (show) {
+    show (show) {
       this.error = ''
     },
   },
 
   computed: {
     ...mapState({
-      value: s => s.showUnlock,
+      show: s => s.accounts.showUnlock,
     }),
 
     ...mapGetters({
@@ -47,7 +47,7 @@ export default {
 
   methods: {
     ...mapActions({
-      unlockAccount: 'unlock',
+      unlockAccount: 'unlockAccount',
     }),
 
     ...mapMutations({

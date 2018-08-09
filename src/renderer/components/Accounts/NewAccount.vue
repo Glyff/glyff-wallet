@@ -1,6 +1,6 @@
 <template>
   <div>
-    <modal v-model="show" :backdrop="closable" :dismiss-btn="closable" title="Create new account">
+    <modal :value="show" @input="hideNewAccount()" :backdrop="closable" :dismiss-btn="closable" title="Create new account">
       <div v-if="message" class="alert alert-warning">{{ message }}</div>
       <div class="form-group" :class="{'has-error': hasErrors('name')}">
         <label class="control-label">Account Name</label>
@@ -14,17 +14,15 @@
       </div>
       <div slot="footer" class="text-right">
         <button class="btn btn-primary" @click="create()">Create Account</button>
-        <button class="btn btn-default" v-if="closable" @click="show = false">Close</button>
+        <button class="btn btn-default" v-if="closable" @click="hideNewAccount()">Close</button>
       </div>
     </modal>
-
-    <button class="btn btn-primary mt-20" @click="show = true">Create Account</button>
   </div>
 </template>
 
 <script>
 import {Modal} from 'uiv'
-import {mapState, mapActions} from 'vuex'
+import {mapState, mapActions, mapMutations} from 'vuex'
 import pick from 'lodash-es/pick'
 import Validator from 'validatorjs'
 
@@ -35,7 +33,6 @@ export default {
 
   data () {
     return {
-      show: false,
       name: '',
       password: '',
       errors: {},
@@ -45,14 +42,15 @@ export default {
 
   beforeMount () {
     if (! this.accounts.length) {
-      this.show = true
+      this.showNewAccount()
       this.message = 'You don\'t have any accounts, please create one to proceed'
     }
   },
 
   computed: {
     ...mapState({
-      accounts: s => s.accounts
+      accounts: s => s.accounts.accounts,
+      show: s => s.accounts.showNewAccount,
     }),
 
     closable () {
@@ -62,7 +60,12 @@ export default {
 
   methods: {
     ...mapActions({
-      createAccount: 'create',
+      createAccount: 'createAccount',
+    }),
+
+    ...mapMutations({
+      hideNewAccount: 'HIDE_NEW_ACCOUNT',
+      showNewAccount: 'SHOW_NEW_ACCOUNT',
     }),
 
     create () {
@@ -70,7 +73,7 @@ export default {
 
       this.createAccount(pick(this, ['name', 'password']))
         .then(() => {
-          this.show = false
+          this.hideNewAccount()
           this.name = ''
           this.password = ''
         })

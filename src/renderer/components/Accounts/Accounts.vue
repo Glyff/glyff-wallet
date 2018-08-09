@@ -8,7 +8,7 @@
       </div>
     </div>
     <balances></balances>
-    <new-account></new-account>
+    <button class="btn btn-primary mt-20" @click="showNewAccount()">Create Account</button>
     <div class="simple-panel">
       <table class="table table-hover">
         <thead>
@@ -41,13 +41,11 @@
 <script>
 import Balances from '../Layout/Balances'
 import EditAccount from './EditAccount'
-import NewAccount from './NewAccount'
 import {mapState, mapActions, mapMutations} from 'vuex'
 
 export default {
   components: {
     Balances,
-    NewAccount,
     EditAccount,
   },
 
@@ -69,6 +67,7 @@ export default {
     ...mapMutations({
       changeAccount: 'CHANGE_ACCOUNT',
       showUnlock: 'SHOW_UNLOCK',
+      showNewAccount: 'SHOW_NEW_ACCOUNT',
     }),
 
     ...mapActions({

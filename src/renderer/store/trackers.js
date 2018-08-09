@@ -59,7 +59,7 @@ const actions = {
     return co(function* () {
       yield rootState.accounts.accounts.map(account => {
         if (! state.trackers[account.address]) {
-          return dispatch('create', account)
+          return dispatch('createTracker', account)
         }
       })
     })

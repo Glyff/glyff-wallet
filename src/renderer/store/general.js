@@ -73,6 +73,7 @@ const actions = {
       yield dispatch('checkAndCreateTrackers')
       rootState.accounts.accounts.forEach(account => dispatch('loadGlyBalance', account))
 
+      console.log(rootState.trackers.trackers)
       // Check past events for each tracker
       map(rootState.trackers.trackers, (tracker, address) => {
         dispatch('checkPastEvents', {tracker, address})
