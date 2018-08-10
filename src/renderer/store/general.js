@@ -86,12 +86,12 @@ const actions = {
       })
 
       if (rootState.accounts.accounts.length) {
-        if (rootState.accounts.currentBlock === null) {
+        if (rootState.general.currentBlock === null) {
           // Use heuristic chain sync for initial syncing or normal for consecutive syncs
           syncChainHeuristic(bus, rootState.accounts.accounts, rootState.accounts.transactions).then(currentBlock => {
             dispatch('syncFinished', currentBlock)
           })
-        } else if (rootState.accounts.currentBlock !== rootState.accounts.lastBlock) {
+        } else if (rootState.general.currentBlock !== rootState.general.lastBlock) {
           // Use noraml method to sync block between last block and current blocks
           syncChain(bus, rootState.accounts.accounts, rootState.accounts.transactions, rootState.accounts.currentBlock).then(currentBlock => {
             dispatch('syncFinished', currentBlock)
