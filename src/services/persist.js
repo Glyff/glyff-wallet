@@ -85,7 +85,7 @@ export const restoreState = (store) => {
   const state = loadState()
 
   const allState = {
-    genaral: {
+    general: {
       currentBlock: state.currentBlock,
     },
     accounts: {
@@ -135,7 +135,7 @@ export const saveState = (state) => {
   const stateData = {
     transactions,
     trackers,
-    currentBlock: state.accounts.currentBlock,
+    currentBlock: state.general.currentBlock,
   }
 
   return co(function* () {
