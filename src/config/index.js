@@ -5,8 +5,8 @@ export default {
   // Node settings
   node: {
     host: '10.10.4.20',
-    // port: 8545,
-    port: 18545,
+    port: 8545,
+    // port: 18545,
   },
 
   homeDir: os.homedir() + '/.glyff-wallet/',

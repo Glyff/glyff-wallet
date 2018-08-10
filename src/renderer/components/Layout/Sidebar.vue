@@ -56,8 +56,8 @@ export default {
   computed: {
     ...mapState({
       accounts: s => s.accounts.accounts,
-      lastBlock: s => s.accounts.lastBlock,
-      syncingBlock: s => s.accounts.syncingBlock,
+      lastBlock: s => s.general.lastBlock,
+      syncingBlock: s => s.general.syncingBlock,
     }),
 
     ...mapGetters({

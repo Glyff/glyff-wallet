@@ -28,3 +28,7 @@ bus.on('synced-blocks-to', (block) => {
 bus.on('synced-blocks-from', (block) => {
   store.commit('UPDADE_SYNCING_BLOCK', block)
 })
+
+bus.on('new-block', (block) => {
+  store.commit('NEW_BLOCK', block)
+})

@@ -50,7 +50,7 @@ export default {
   computed: {
     ...mapState({
       accounts: s => s.accounts.accounts,
-      show: s => s.accounts.showNewAccount,
+      show: s => s.general.showNewAccount,
     }),
 
     closable () {

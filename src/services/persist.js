@@ -85,10 +85,12 @@ export const restoreState = (store) => {
   const state = loadState()
 
   const allState = {
+    genaral: {
+      currentBlock: state.currentBlock,
+    },
     accounts: {
       accounts,
       transactions: state.transactions,
-      currentBlock: state.currentBlock,
     },
     trackers: {
       trackers: state.trackers,

@@ -15,8 +15,8 @@ export const connect = () => {
   return new Promise((resolve, reject) => {
     // if (web3.isConnected()) resolve()
 
-    // const provider = new web3.providers.WebsocketProvider('ws://' + config.node.host + ':' + config.node.port)
-    const provider = new web3.providers.HttpProvider('http://' + config.node.host + ':' + config.node.port)
+    const provider = new web3.providers.WebsocketProvider('ws://' + config.node.host + ':' + config.node.port)
+    // const provider = new web3.providers.HttpProvider('http://' + config.node.host + ':' + config.node.port)
     web3.setProvider(provider)
 
     // Workaround to check if is connected asyncronously

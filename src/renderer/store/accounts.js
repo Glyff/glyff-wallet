@@ -20,13 +20,6 @@ const state = {
   selectedAddress: null,
 
   transactions: {},
-
-  currentBlock: null,
-  lastBlock: null,
-  syncingBlock: null,
-
-  showUnlock: false,
-  showNewAccount: false,
 }
 
 /*
@@ -171,7 +164,7 @@ const actions = {
         to: data.recipient,
         value: web3.utils.toWei(data.amount),
         gasPrice: data.gasPrice * 1000000000,
-        gasLimit: 21000,
+        gasLimit: '0x55f0', // // 22000 Wei
       }
       console.log(atts)
       const tx = yield web3.eth.sendTransaction(atts)
@@ -211,22 +204,6 @@ const mutations = {
 
   CHANGE_ACCOUNT (state, account) {
     state.selectedAddress = account.address
-  },
-
-  SHOW_UNLOCK (state) {
-    state.showUnlock = true
-  },
-
-  HIDE_UNLOCK (state) {
-    state.showUnlock = false
-  },
-
-  SHOW_NEW_ACCOUNT (state) {
-    state.showNewAccount = true
-  },
-
-  HIDE_NEW_ACCOUNT (state) {
-    state.showNewAccount = false
   },
 
   LOCK_ACCOUNT (state, account) {
@@ -294,19 +271,6 @@ const mutations = {
 
   SEND_GLY_FAIL (state, err) {
     //
-  },
-
-  UPDATE_CURRENT_BLOCK (state, currentBlock) {
-    state.currentBlock = currentBlock
-    state.syncingBlock = null // Current block is updated after syncing is finished
-  },
-
-  UPDATE_LAST_BLOCK (state, lastBlock) {
-    state.lastBlock = lastBlock
-  },
-
-  UPDADE_SYNCING_BLOCK (state, syncingBlock) {
-    state.syncingBlock = syncingBlock
   },
 }
 

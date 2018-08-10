@@ -9,6 +9,22 @@ import chunk from 'lodash-es/chunk'
 const debug = require('debug')('blockchain')
 
 /**
+ * Watch new blocks
+ *
+ * @param bus
+ */
+export const watchNewBlocks = (bus, accounts, transactions) => {
+  web3.eth.subscribe('newBlockHeaders', function (error, result) {
+    if (error) throw error
+  }).on('data', function (blockHeader) {
+    web3.eth.getBlock(blockHeader.number).then(block => {
+      bus.emit('new-block', block)
+      syncBlock(block, accounts.map(a => a.address), transactions)
+    })
+  })
+}
+
+/**
  * Sync chain for account heuristic way
  *
  * @param bus

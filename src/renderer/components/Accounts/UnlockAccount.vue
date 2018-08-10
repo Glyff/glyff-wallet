@@ -37,7 +37,7 @@ export default {
 
   computed: {
     ...mapState({
-      show: s => s.accounts.showUnlock,
+      show: s => s.general.showUnlock,
     }),
 
     ...mapGetters({
