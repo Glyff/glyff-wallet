@@ -20,8 +20,13 @@ const accountsSchema = Joi.array().items(
 )
 
 const stateSchema = Joi.object().keys({
-  trackers: Joi.object(),
-  transactions: Joi.object(),
+  trackers: Joi.object().required(),
+  transactions: Joi.object().required(),
+  currentBlock: Joi.number().allow(null).required(),
+  oToken: Joi.object().keys({
+    address: Joi.string(),
+    abi: Joi.array(),
+  }),
 }).options({ stripUnknown: true }) // Remove unknown keys
 
 /**
@@ -56,9 +61,13 @@ const loadState = () => {
   if (! fs.existsSync(statePath)) return {}
   const state = fs.readJsonSync(statePath)
   // console.log(state)
+  const validate = Joi.validate(state, stateSchema)
 
   // If state data is not valid, return only loaded accounts
-  if (Joi.validate(state, stateSchema).error) return {}
+  if (validate.error) {
+    console.error('State validation failed', validate.error)
+    return {}
+  }
 
   // Convert transactions data
   Object.keys(state.transactions).forEach(addr => {
@@ -87,6 +96,7 @@ export const restoreState = (store) => {
   const allState = {
     general: {
       currentBlock: state.currentBlock,
+      oToken: state.oToken,
     },
     accounts: {
       accounts,
@@ -136,6 +146,7 @@ export const saveState = (state) => {
     transactions,
     trackers,
     currentBlock: state.general.currentBlock,
+    oToken: state.general.oToken,
   }
 
   return co(function* () {

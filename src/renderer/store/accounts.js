@@ -223,7 +223,8 @@ const mutations = {
   },
 
   UNLOCK_ACCOUNT_OK (state, {address}) {
-    state.accounts.find(a => a.address.toLowerCase() === address.toLowerCase()).locked = false
+    const accIdx = state.accounts.findIndex(a => a.address.toLowerCase() === address.toLowerCase())
+    Vue.set(state.accounts, accIdx, Object.assign(state.accounts[accIdx], {locked: false}))
   },
 
   UNLOCK_ACCOUNT_FAIL (state, account) {

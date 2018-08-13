@@ -10,8 +10,8 @@
     <balances></balances>
     <div class="row table-content-top-navigation">
       <div class="col-md-12 table-content-top-btn-block">
-        <a href="#"> <img src="@/assets/images/unlock-icon.png">Unlock</a>
-        <a href="#"> <img src="@/assets/images/plus-icon.png">New T-Address</a>
+        <a href="#" v-if="currentAccount && currentAccount.locked" @click.prevent="showUnlock()"><img src="@/assets/images/unlock-icon.png">Unlock</a>
+        <a href="#" @click.prevent="showNewAccount()"><img src="@/assets/images/plus-icon.png">New T-Address</a>
       </div>
     </div>
     <div class="simple-panel">
@@ -32,13 +32,27 @@
 </template>
 
 <script>
+import {mapGetters, mapMutations} from 'vuex'
 import Balances from '../Layout/Balances'
 
 export default {
-  name: 'receive',
-
   components: {
     Balances,
+  },
+
+  computed: {
+    ...mapGetters({
+      currentAccount: 'currentAccount',
+    }),
+
+  },
+
+  methods: {
+    ...mapMutations({
+      showUnlock: 'SHOW_UNLOCK',
+      showNewAccount: 'SHOW_NEW_ACCOUNT',
+    }),
+
   },
 }
 </script>
