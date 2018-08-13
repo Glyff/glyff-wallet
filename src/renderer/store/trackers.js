@@ -6,7 +6,9 @@ import Vue from 'vue'
  * State
  */
 const state = {
+
   trackers: {},
+
 }
 
 /*
@@ -14,10 +16,10 @@ const state = {
  */
 const getters = {
 
-  currentTracker (state, getters, rootState) {
-    if (! rootState.accounts.selectedAccount) return null
+  currentTrackers (state, getters, rootState) {
+    if (! rootState.accounts.selectedAddress) return null
 
-    return state.trackers[rootState.accounts.selectedAccount]
+    return state.trackers[rootState.accounts.selectedAddress]
   },
 
 }
@@ -58,7 +60,7 @@ const actions = {
   checkAndCreateTrackers ({dispatch, state, rootState}) {
     return co(function* () {
       yield rootState.accounts.accounts.map(account => {
-        if (! state.trackers[account.address]) {
+        if (! state.trackers[account.address] || state.trackers[account.address].length === 0) {
           return dispatch('createTracker', account)
         }
       })
@@ -76,7 +78,11 @@ const mutations = {
   },
 
   CREATE_TRACKER_OK (state, {account, tracker}) {
-    Vue.set(state.trackers, account.address, tracker)
+    if (! state.trackers[account.address]) {
+      Vue.set(state.trackers, account.address, [tracker])
+    } else {
+      state.trackers[account.address].push(tracker)
+    }
   },
 
   CREATE_TRACKER_FAIL () {

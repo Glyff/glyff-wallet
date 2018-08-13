@@ -22,7 +22,8 @@
         </div>
         <div class="row">
           <div class="col-md-12 table-content-btn-block">
-            <a href="#" id="table-content-btn-save" @click.prevent="save()"><img src="@/assets/images/save-icon.png"> Save - Save As </a>
+            <a href="#" @click.prevent="update()" class="mr-40">Update</a>
+            <a href="#" @click.prevent="save()"><img src="@/assets/images/save-icon.png"> Save - Save As</a>
           </div>
         </div>
       </div>
@@ -31,10 +32,10 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState, mapActions, mapMutations} from 'vuex'
 import Balances from '../Layout/Balances'
 import fs from 'fs-extra'
-const {dialog} = require('electron').remote
+import {remote} from 'electron'
 
 export default {
   components: {
@@ -60,8 +61,33 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      toast: 'addToastMessage',
+    }),
+
+    ...mapMutations({
+      updateOToken: 'UPDADE_OTOKEN',
+      setTokenContract: 'SET_TOKEN_CONTRACT',
+    }),
+
+    update () {
+      if (! this.address || this.address.length !== 42) {
+        return alert('Address must be a valid contract address')
+      }
+
+      try {
+        const abi = JSON.parse(this.abi)
+
+        this.updateOToken({address: this.address, abi})
+        this.setTokenContract()
+        this.toast({text: 'New oToken was saved'})
+      } catch (e) {
+        return alert('Abi must be a valid JSON')
+      }
+    },
+
     save () {
-      dialog.showSaveDialog({defaultPath: 'oToken.json'}, filename => {
+      remote.dialog.showSaveDialog({defaultPath: 'oToken.json'}, filename => {
         if (typeof filename === 'undefined') {
           return console.log('You didn\'t save the file')
         }

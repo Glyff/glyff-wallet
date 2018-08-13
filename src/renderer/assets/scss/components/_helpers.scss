@@ -20,3 +20,6 @@ $sides: (top, bottom, left, right); // Leave this variable alone
 .color-info { color: $brand-info; }
 .color-warning { color: $brand-warning; }
 .color-danger { color: $brand-danger; }
+
+.table-fixed { table-layout: fixed; }
+.break-word { word-wrap: break-word; }

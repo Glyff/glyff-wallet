@@ -186,6 +186,10 @@ const mutations = {
     state.checkingPastEvents = false
   },
 
+  UPDADE_OTOKEN (state, oToken) {
+    state.oToken = oToken
+  },
+
   SET_TOKEN_CONTRACT (state) {
     state.tokenContract = new web3.eth.Contract(state.oToken.abi, state.oToken.address)
   },

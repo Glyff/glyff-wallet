@@ -20,7 +20,7 @@ const accountsSchema = Joi.array().items(
 )
 
 const stateSchema = Joi.object().keys({
-  trackers: Joi.object().required(),
+  trackers: Joi.object(),
   transactions: Joi.object().required(),
   currentBlock: Joi.number().allow(null).required(),
   oToken: Joi.object().keys({
