@@ -21,8 +21,8 @@ const accountsSchema = Joi.array().items(
 
 const stateSchema = Joi.object().keys({
   trackers: Joi.object(),
-  transactions: Joi.object().required(),
-  currentBlock: Joi.number().allow(null).required(),
+  transactions: Joi.object(),
+  currentBlock: Joi.number().allow(null),
   oToken: Joi.object().keys({
     address: Joi.string(),
     abi: Joi.array(),
@@ -72,7 +72,7 @@ const loadState = () => {
   // Convert transactions data
   Object.keys(state.transactions).forEach(addr => {
     state.transactions[addr].forEach(tx => {
-      tx.amount = new BN(tx.amount)
+      tx.value = new BN(tx.value)
       tx.date = moment(tx.date)
     })
   })

@@ -3,7 +3,6 @@ import web3, {connect as web3Connect} from '../../services/web3'
 import bus from '../bus'
 import {checkPastEvents, syncChain, syncChainHeuristic, watchNewBlocks} from '../../services/blockchain'
 import config from '../../config'
-import map from 'lodash-es/map'
 
 /*
  * State
@@ -82,12 +81,10 @@ const actions = {
       commit('ENSURE_TRANSACTIONS_OBJECTS')
       rootState.accounts.accounts.forEach(account => dispatch('loadGlyBalance', account))
 
-      // Check past events for each tracker
-      map(rootState.trackers.trackers, (tracker, address) => {
-        dispatch('checkPastEvents', {tracker, address})
-      })
-
       commit('START_OK')
+
+      // Check past events
+      yield dispatch('checkPastEvents')
 
       if (rootState.accounts.accounts.length) {
         if (state.currentBlock === null) {
@@ -126,11 +123,10 @@ const actions = {
   /**
    * Check past events
    */
-  checkPastEvents ({commit, state, rootState, getters, rootGetters}, {tracker, address}) {
+  checkPastEvents ({commit, state, rootState}) {
     return co(function* () {
       commit('CHECK_PAST_EVENTS')
-      const account = rootState.accounts.accounts.find(a => a.address === address)
-      yield checkPastEvents(bus, tracker, account, rootState.accounts.transactions[address] || [], state.tokenContract)
+      yield checkPastEvents(bus, rootState.trackers.trackers, rootState.accounts.accounts, rootState.accounts.transactions, state.tokenContract, state.currentBlock)
       commit('CHECK_PAST_EVENTS_OK')
     })
       .catch(error => {

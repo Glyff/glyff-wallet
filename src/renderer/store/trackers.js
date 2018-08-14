@@ -1,6 +1,7 @@
 import {createTracker} from '../../services/tracker'
 import co from 'co'
-import Vue from 'vue'
+import BN from 'bn.js'
+import {shield} from '../../services/wallet'
 
 /*
  * State
@@ -17,7 +18,7 @@ const state = {
 const getters = {
 
   currentTrackers (state, getters, rootState) {
-    if (! rootState.accounts.selectedAddress) return null
+    if (! rootState.accounts.selectedAddress) return []
 
     return state.trackers[rootState.accounts.selectedAddress]
   },
@@ -40,12 +41,15 @@ const actions = {
    * @param account
    */
   createTracker ({commit}, account) {
+    commit('START_LOADING')
     commit('CREATE_TRACKER')
     return createTracker().then(tracker => {
       commit('CREATE_TRACKER_OK', {account, tracker})
       return tracker
     }).catch(err => {
       commit('CREATE_TRACKER_FAIL', err)
+    }).finally(() => {
+      commit('STOP_LOADING')
     })
   },
 
@@ -66,6 +70,23 @@ const actions = {
       })
     })
   },
+
+  shield ({commit, rootState, rootGetters}, {tracker, amount}) {
+    return co(function* () {
+      amount = new BN(amount)
+      commit('START_LOADING')
+      commit('SHIELD')
+
+      const note = yield shield(rootGetters.currentAccount, rootGetters.glyBalance, amount, tracker, rootState.general.tokenContract)
+      console.log(note)
+      commit('SHIELD_OK', note)
+    }).catch(err => {
+      commit('SHIELD_FAIL', err)
+      throw err
+    }).finally(() => {
+      commit('STOP_LOADING')
+    })
+  },
 }
 
 /*
@@ -78,21 +99,24 @@ const mutations = {
   },
 
   CREATE_TRACKER_OK (state, {account, tracker}) {
-    if (! state.trackers[account.address]) {
-      Vue.set(state.trackers, account.address, [tracker])
-    } else {
-      state.trackers[account.address].push(tracker)
-    }
+    state.trackers[account.address].push(tracker)
   },
 
   CREATE_TRACKER_FAIL () {
     //
   },
 
-  NEW_SHIELDING (state, event) {
+  SHIELD (state) {
     //
   },
 
+  SHIELD_OK (state, event) {
+    //
+  },
+
+  SHIELD_FAIL (state, error) {
+    //
+  },
 }
 
 export default {

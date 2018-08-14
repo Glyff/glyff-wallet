@@ -1,4 +1,5 @@
 import os from 'os'
+import BN from 'bn.js'
 
 export default {
 
@@ -14,11 +15,11 @@ export default {
   appPath: process.cwd(),
 
   token: {
-    address: '0x82bbaee36211447bca79b75929ebbc63ca90753d',
+    address: '0xf80e2fec3ccd3d049cf5a9f08535a418b78f732a',
     abi: require('./token_abi'),
   },
 
-  unshieldGas: 125000,
+  unshieldGas: new BN(125000),
 
   /** {Number} The number of max unspent notes outputs that can be unshielded for a transaction */
   maxUnshieldings: 6,

@@ -1,6 +1,7 @@
 import co from 'co'
 import web3 from './web3'
 import uuid from 'uuid'
+import BN from 'bn.js'
 
 /**
  * Create tracker
@@ -16,6 +17,7 @@ export const createTracker = () => {
       notes: [],
       spent: [],
       lastBlock: 0,
+      balance: new BN(0),
     })
   })
 }

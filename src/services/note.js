@@ -62,28 +62,27 @@ export const unshieldNote = (note, tracker, address, tokenContract) => {
  * @param tracker
  * @param value
  * @param address
- * @param ztoken
+ * @param tokenContract
  * @return {Promise<any>}
  */
-export const shieldNote = (tracker, value, address, ztoken) => {
+export const shieldNote = (tracker, value, address, tokenContract) => {
   return co(function* () {
     const rho = yield web3.zsl.getRandomness()
 
     debug('Generating proof for shielding - value : ' + value)
-    const result = yield web3.zsl.createShielding(rho, tracker.a_pk, value)
+    const result = yield web3.zsl.createShielding(rho, tracker.a_pk, value.toNumber())
     debug('Generating finished')
 
     const note = {
       rho,
       value,
-      uuid: web3.toHex(web3.utils.sha3(result.cm, {encoding: 'hex'})),
-      ztoken: ztoken.address,
+      uuid: web3.utils.toHex(web3.utils.sha3(result.cm, {encoding: 'hex'})),
+      tokenContract: tokenContract.address,
       confirmed: false,
       address,
-      tracker: tracker.uuid,
     }
 
-    yield ztoken.shield(result.proof, result.send_nf, result.cm, value, {from: address, gas: 200000})
+    yield tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value).call()
 
     return note
   })

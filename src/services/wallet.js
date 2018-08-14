@@ -111,23 +111,28 @@ export const sendAmount = (account, toAddress, amount, gasPrice) => {
  * Shield amount
  *
  * @param account
- * @param {BN} tBalance
+ * @param {BN} glyBalance
  * @param {BN} amount
  * @param tracker
  * @param tokenContract
  */
-export const shield = (account, tBalance, amount, tracker, tokenContract) => {
+export const shield = (account, glyBalance, amount, tracker, tokenContract) => {
   return co(function* () {
-    const sBalance = tokenContract.balanceOf(account.address)
-    if (sBalance.lt(amount)) { throw new WalletError('Not enough balance to shield', 'NOT_ENOUGH_S_BALANCE') }
+    if (amount.isZero() || amount.lt(0)) throw new WalletError('Amount should be more than 0', 'ZERO_AMOUNT')
 
-    const gasPrice = yield getGasPrice()
-    const totalGas = gasPrice.multipliedBy(config.unshieldGas)
+    const glxBalance = new BN(yield tokenContract.methods.balanceOf(account.address).call())
+    debug('shield: glxBalance', glxBalance.toString())
+    if (glxBalance.lt(amount)) throw new WalletError('Not enough balance to shield', 'NOT_ENOUGH_S_BALANCE')
+
+    const gasPrice = new BN(yield getGasPrice())
+    debug('shield: gasPrice', gasPrice.toString())
+
+    const totalGas = gasPrice.mul(config.unshieldGas)
     debug('Total shield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
 
-    if (tBalance.lt(totalGas)) { throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE') }
+    if (glyBalance.lt(totalGas)) throw new WalletError('Insufficient funds for gas', 'NOT_ENOUGH_T_BALANCE')
 
-    yield shieldNote(tracker, amount, account.address, tokenContract)
+    return yield shieldNote(tracker, amount, account.address, tokenContract)
   })
 }
 

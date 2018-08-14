@@ -8,7 +8,7 @@
       </tr>
       <tr>
         <td style="width: 20%;">Balance:</td>
-        <td class="break-word">{{ tracker.balance }}</td>
+        <td class="break-word">{{ tracker.balance | ether('GLX', 'GLX') }}</td>
       </tr>
       </tbody>
     </table>

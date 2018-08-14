@@ -53,12 +53,11 @@ const getters = {
   },
 
   calcBalance: (state, getters) => (type) => {
-    const address = state.selectedAddress.toLowerCase()
     let balance = new BN(0)
     getters.currentAccountTransactions.forEach(tx => {
       if (tx.type !== type) return
-      if (tx.from.toLowerCase() === address) balance = balance.sub(tx.value)
-      if (tx.to.toLowerCase() === address) balance = balance.add(tx.value)
+      if (tx.from === state.selectedAddress) balance = balance.sub(tx.value)
+      if (tx.to === state.selectedAddress) balance = balance.add(tx.value)
     })
 
     return balance

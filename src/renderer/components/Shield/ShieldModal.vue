@@ -1,0 +1,100 @@
+<template>
+  <modal :value="value" @input="$emit('input', $event)" title="Shield Funds" size="lg">
+
+    <div class="form-group" :class="{'has-error': hasErrors('zAddress')}">
+      <label class="control-label">To Z-Address</label>
+      <multiselect :options="trackers"
+                   v-model="tracker"
+                   track-by="zaddr"
+                   label="zaddr"
+                   :searchable="false"
+                   :allow-empty="false"
+                   :show-labels="false"
+      ></multiselect>
+      <span class="help-block" v-if="hasErrors('zAddress')">{{ getErrors('zAddress') }}</span>
+    </div>
+
+    <div class="form-group" :class="{'has-error': hasErrors('amount')}">
+      <label>Amount</label>
+      <div class="row">
+        <div class="col-sm-6">
+          <input v-model="amount" class="form-control" placeholder="0.0">
+        </div>
+        <div class="col-sm-6 pt-5">
+          {{ glxBalance | ether('', 'GLX') }} available
+        </div>
+      </div>
+      <span class="help-block" v-if="hasErrors('amount')">{{ getErrors('amount') }}</span>
+    </div>
+
+    <div slot="footer" class="text-right">
+      <button class="btn btn-primary" @click="shield()">Shield</button>
+      <button class="btn btn-default" @click="$emit('input', false)">Close</button>
+    </div>
+  </modal>
+</template>
+
+<script>
+import {mapGetters, mapActions} from 'vuex'
+import {Modal} from 'uiv'
+import pick from 'lodash-es/pick'
+import Validator from 'validatorjs'
+import Multiselect from 'vue-multiselect/src/Multiselect.vue'
+
+export default {
+  components: {
+    Modal,
+    Multiselect,
+  },
+
+  props: ['value'],
+
+  data () {
+    return {
+      tracker: null,
+      amount: '',
+      errors: {},
+    }
+  },
+
+  watch: {
+    value (show) {
+      if (show) this.tracker = this.trackers[0]
+    },
+  },
+
+  computed: {
+    ...mapGetters({
+      trackers: 'currentTrackers',
+      glxBalance: 'glxBalance',
+    }),
+  },
+
+  methods: {
+    ...mapActions({
+      shieldAction: 'shield',
+    }),
+
+    shield () {
+      if (! this.validate()) return
+
+      this.shieldAction(pick(this, ['tracker', 'amount']))
+    },
+
+    validate () {
+      const validation = new Validator(pick(this, ['amount']), {
+        amount: 'required',
+      })
+
+      if (validation.fails()) {
+        this.errors = validation.errors.errors
+        return false
+      } else {
+        this.errors = {}
+        return true
+      }
+    },
+  },
+
+}
+</script>

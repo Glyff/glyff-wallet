@@ -1,6 +1,6 @@
 import co from 'co'
 import BN from 'bn.js'
-import {decryptBlob} from './note'
+// import {decryptBlob} from './note'
 import web3 from './web3'
 import range from 'lodash-es/range'
 import chunk from 'lodash-es/chunk'
@@ -219,44 +219,52 @@ export const syncChain = (bus, accounts, transactions, startBlock) => {
  * Check events from the latest all run (last block saved to tracker)
  *
  * @param {Bus} bus
- * @param tracker
- * @param account
+ * @param trackers
+ * @param accounts
  * @param transactions
  * @param tokenContract
+ * @param lastBlock
  * @return {{event, args}}
  */
-export const checkPastEvents = (bus, tracker, account, transactions, tokenContract) => {
+export const checkPastEvents = (bus, trackers, accounts, transactions, tokenContract, lastBlock) => {
   return co(function* () {
-    debug(`checkPastEvents: retrieving past events from block ${tracker.lastBlock} to the latest`)
+    debug(`checkPastEvents: retrieving past events from block ${lastBlock} to the latest`)
     // TODO use {filter: {from: [12,13]}} to filter by needed account addresses as they are indexed
     // TODO split by event types into different methods
-    const events = yield tokenContract.getPastEvents('allEvents', {fromBlock: tracker.lastBlock, toBlock: 'latest'})
+    const events = yield tokenContract.getPastEvents('allEvents', {fromBlock: 0, toBlock: 'latest'})
     debug(`checkPastEvents: found ${events.length} past events`)
 
     events.forEach(event => {
       co(function* () {
-        debug('checkPastEvents: processing past event', {event})
+        debug('checkPastEvents: processing past event: ' + event.event, {event})
 
         // Check if event type is what we need
         if (! ['LogTransfer', 'LogShielding', 'LogUnshielding', 'LogShieldedTransfer'].includes(event.event)) return
 
-        // Check if belongs to account
-        if (! [event.returnValues.from.toString().toLowerCase(), event.returnValues.to.toString().toLowerCase()]
-          .includes(account.address.toLowerCase())) return
+        const fromAccount = accounts.find(a => a.address === event.returnValues.from)
+        const toAccount = accounts.find(a => a.address === event.returnValues.to)
+
+        // Check if belongs to any of our accounts
+        if (! fromAccount && ! toAccount) return
 
         // Check if transaction already added to an account
         // if (tracker.notes.find(n => n.uuid === event.args.uuid)) return
 
-        // Check if note already added to a tracker
-        if (tracker.notes.find(n => n.uuid === event.args.uuid)) return
-
-        debug(`checkPastEvents: loading block number ${event.blockNumber}`)
         const block = yield web3.eth.getBlock(event.blockNumber)
+
+        if (['LogShielding', 'LogUnshielding', 'LogShieldedTransfer'].includes(event.event)) {
+          // Check if note already added to any trackers
+          // TODO check all trackers
+          // if (trackers.find(tr => tr.notes.find(n => n.uuid === event.args.uuid))) return
+        }
 
         switch (event.event) {
           case 'LogTransfer':
             // Check if transactions already exist
-            if (transactions && transactions.find(tx => tx.hash === event.transactionHash)) return
+            if (fromAccount && transactions[fromAccount.address].find(tx => tx.hash === event.transactionHash)) return
+            if (toAccount && transactions[toAccount.address].find(tx => tx.hash === event.transactionHash)) return
+
+            debug('checkPastEvents: found new LogTransfer', {event})
 
             return bus.emit('glx-transfer', Object.assign({}, event, {timestamp: block.timestamp}))
           case 'LogShielding':
@@ -264,9 +272,10 @@ export const checkPastEvents = (bus, tracker, account, transactions, tokenContra
           case 'LogUnshielding':
             return bus.emit('unshielding', event)
           case 'LogShieldedTransfer':
-            const note = decryptBlob(tracker, event.returnValues.blob, event.returnValues.from.toString(), tokenContract)
+            // TODO find needed tracker?
+            // const note = decryptBlob(tracker, event.returnValues.blob, event.returnValues.from.toString(), tokenContract)
 
-            return bus.emit('shielded-transfer', note)
+            // return bus.emit('shielded-transfer', note)
         }
       })
     })
