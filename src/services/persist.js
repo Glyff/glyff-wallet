@@ -137,7 +137,7 @@ export const saveState = (state) => {
   // Stringify transactions data
   Object.keys(transactions).forEach(addr => {
     transactions[addr].forEach(tx => {
-      tx.amount = tx.amount.toString(10)
+      tx.value = tx.value.toString(10)
       tx.date = tx.date.format('YYYY-MM-YY hh:mm:ss')
     })
   })
