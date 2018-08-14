@@ -2,6 +2,7 @@ import BN from 'bn.js'
 import Vue from 'vue'
 import co from 'co'
 import web3, {fromWei, isUnlocked} from '../../services/web3'
+import {createGlxTransaction, createGlyTransaction} from '../../services/transaction'
 
 /*
  * State
@@ -56,8 +57,8 @@ const getters = {
     let balance = new BN(0)
     getters.currentAccountTransactions.forEach(tx => {
       if (tx.type !== type) return
-      if (tx.from.toLowerCase() === address) balance = balance.sub(tx.amount)
-      if (tx.to.toLowerCase() === address) balance = balance.add(tx.amount)
+      if (tx.from.toLowerCase() === address) balance = balance.sub(tx.value)
+      if (tx.to.toLowerCase() === address) balance = balance.add(tx.value)
     })
 
     return balance
@@ -135,27 +136,27 @@ const actions = {
     }).catch(err => commit('LOAD_GLY_BALANCE_FAIL', err))
   },
 
-  glyTransfer ({commit, dispatch, getters}, tx) {
+  glyTransfer ({commit, dispatch, state}, tx) {
     commit('GLY_TRANSFER', tx)
-    if (tx.direction === 'in') {
+    if (state.accounts.find(a => a.address === tx.to)) {
       dispatch('addToastMessage', {
-        text: 'You just recieved ' + fromWei(tx.amount, tx.type) + ' ' + tx.type + ' from ' + tx.from,
+        text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
         type: 'success',
       }, {root: true})
     }
   },
 
-  glxTransfer ({commit, dispatch, getters}, tx) {
+  glxTransfer ({commit, dispatch, state}, tx) {
     commit('GLX_TRANSFER', tx)
-    if (tx.direction === 'in') {
+    if (state.accounts.find(a => a.address === tx.to)) {
       dispatch('addToastMessage', {
-        text: 'You just recieved ' + fromWei(tx.amount, tx.type) + ' ' + tx.type + ' from ' + tx.from,
+        text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
         type: 'success',
       }, {root: true})
     }
   },
 
-  sendGly ({commit, state}, data) {
+  sendGly ({commit, state, getters, dispatch}, data) {
     return co(function* () {
       commit('START_LOADING')
       commit('SEND_GLY')
@@ -168,8 +169,10 @@ const actions = {
       }
       console.log(atts)
       const tx = yield web3.eth.sendTransaction(atts)
+      tx.value = web3.utils.toWei(data.amount)
       console.log(tx)
       commit('SEND_GLY_OK', tx)
+      dispatch('glyTransfer', tx)
     }).catch(err => {
       commit('SEND_GLY_FAIL', err)
       throw err
@@ -185,6 +188,14 @@ const actions = {
  */
 const mutations = {
 
+  ENSURE_TRANSACTIONS_OBJECTS (state) {
+    state.accounts.forEach(a => {
+      if (! state.transactions[a.address]) {
+        state.transactions[a.address] = []
+      }
+    })
+  },
+
   CREATE_ACCOUNT (state) {
     //
   },
@@ -192,6 +203,7 @@ const mutations = {
   CREATE_ACCOUNT_OK (state, account) {
     state.accounts.push(Object.assign({}, account, {locked: false}))
     state.selectedAddress = account.address
+    state.transactions[account.address] = []
   },
 
   CREATE_ACCOUNT_FAIL (state, error) {
@@ -247,19 +259,33 @@ const mutations = {
   },
 
   GLX_TRANSFER (state, tx) {
-    const account = state.accounts.find(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
-      a.address.toLowerCase() === tx.to.toLowerCase())
+    tx = createGlxTransaction(tx)
+    const fromAccount = state.accounts.find(a => a.address === tx.from)
+    const toAccount = state.accounts.find(a => a.address === tx.to)
 
-    if (! state.transactions[account.address]) Vue.set(state.transactions, account.address, [])
-    state.transactions[account.address].push(tx)
+    if (fromAccount) {
+      state.transactions[fromAccount.address].push(Object.assign({}, tx, {direction: 'out'}))
+    }
+
+    if (toAccount) {
+      state.transactions[toAccount.address].push(Object.assign({}, tx, {direction: 'in'}))
+    }
   },
 
   GLY_TRANSFER (state, tx) {
-    const account = state.accounts.find(a => a.address.toLowerCase() === tx.from.toLowerCase() ||
-      a.address.toLowerCase() === tx.to.toLowerCase())
+    tx = createGlyTransaction(tx)
+    const fromAccount = state.accounts.find(a => a.address === tx.from)
+    const toAccount = state.accounts.find(a => a.address === tx.to)
 
-    if (! state.transactions[account.address]) Vue.set(state.transactions, account.address, [])
-    state.transactions[account.address].push(tx)
+    if (fromAccount) {
+      state.transactions[fromAccount.address].push(Object.assign({}, tx, {direction: 'out'}))
+      // fromAccount.balance = fromAccount.balance.sub(tx.value)
+    }
+
+    if (toAccount) {
+      state.transactions[toAccount.address].push(Object.assign({}, tx, {direction: 'in'}))
+      // toAccount.balance = toAccount.balance.add(tx.value)
+    }
   },
 
   SEND_GLY (state) {

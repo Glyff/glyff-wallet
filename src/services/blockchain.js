@@ -1,7 +1,6 @@
 import co from 'co'
 import BN from 'bn.js'
 import {decryptBlob} from './note'
-import {createGlxTransaction, createGlyTransaction} from './transaction'
 import web3 from './web3'
 import range from 'lodash-es/range'
 import chunk from 'lodash-es/chunk'
@@ -19,7 +18,9 @@ export const watchNewBlocks = (bus, accounts, transactions) => {
   }).on('data', function (blockHeader) {
     web3.eth.getBlock(blockHeader.number).then(block => {
       bus.emit('new-block', block)
-      syncBlock(block, accounts.map(a => a.address), transactions)
+      const addresses = {}
+      accounts.forEach(a => (addresses[a.address] = true))
+      syncBlock(block, addresses, transactions)
     })
   })
 }
@@ -77,7 +78,7 @@ export const syncChainHeuristic = (bus, accounts, transactions) => {
               }
               // Check if transaction already exists, emit new transaction event
               if (! transactions[tx.from].find(t => t.hash === tx.hash)) {
-                bus.emit('gly-transfer', createGlyTransaction(tx, data[tx.from], block.timestamp))
+                bus.emit('gly-transfer', Object.assign({}, tx, {timestamp: block.timestamp}))
               }
               data[tx.from].n-- // Reduce transactions number for the address
             }
@@ -90,7 +91,7 @@ export const syncChainHeuristic = (bus, accounts, transactions) => {
               }
               // Check if transaction already exists, emit new transaction event
               if (! transactions[tx.to].find(t => t.hash === tx.hash)) {
-                bus.emit('gly-transfer', createGlyTransaction(tx, data[tx.to], block.timestamp))
+                bus.emit('gly-transfer', Object.assign({}, tx, {timestamp: block.timestamp}))
               }
             }
           })
@@ -124,7 +125,7 @@ export const syncBlock = (block, bus, addresses, transactions) => {
       debug('syncChain: found outgoing transaction', tx)
       // Check if transaction already exists, emit new transaction event
       if (! transactions[tx.from].find(t => t.hash === tx.hash)) {
-        bus.emit('gly-transfer', createGlyTransaction(tx, {address: tx.from}, block.timestamp))
+        bus.emit('gly-transfer', Object.assign({}, tx, {timestamp: block.timestamp}))
       }
     }
 
@@ -133,7 +134,7 @@ export const syncBlock = (block, bus, addresses, transactions) => {
       debug('syncChain: found incoming transaction', tx)
       // Check if transaction already exists, emit new transaction event
       if (! transactions[tx.to].find(t => t.hash === tx.hash)) {
-        bus.emit('gly-transfer', createGlyTransaction(tx, {address: tx.to}, block.timestamp))
+        bus.emit('gly-transfer', Object.assign({}, tx, {timestamp: block.timestamp}))
       }
     }
   })
@@ -177,7 +178,8 @@ export const syncChain = (bus, accounts, transactions, startBlock) => {
   return co(function* () {
     const currentBlock = yield web3.eth.getBlockNumber()
     const blockBatchSize = 500
-    const addresses = accounts.map(a => a.address)
+    const addresses = {}
+    accounts.forEach(a => (addresses[a.address] = true))
     const failedBlocks = []
 
     for (let i = startBlock; i <= currentBlock; i = i + blockBatchSize) {
@@ -256,7 +258,7 @@ export const checkPastEvents = (bus, tracker, account, transactions, tokenContra
             // Check if transactions already exist
             if (transactions && transactions.find(tx => tx.hash === event.transactionHash)) return
 
-            return bus.emit('glx-transfer', createGlxTransaction(event, account, block.timestamp))
+            return bus.emit('glx-transfer', Object.assign({}, event, {timestamp: block.timestamp}))
           case 'LogShielding':
             return bus.emit('shielding', event)
           case 'LogUnshielding':

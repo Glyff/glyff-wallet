@@ -22,6 +22,7 @@ const state = {
 
   currentBlock: null,
   lastBlock: null,
+  syncing: false,
   syncingBlock: null,
 
   showUnlock: false,
@@ -78,6 +79,7 @@ const actions = {
       dispatch('selectAccountIfNotSelected')
       dispatch('checkIfAccountsLocked') // Don't wait
       yield dispatch('checkAndCreateTrackers')
+      commit('ENSURE_TRANSACTIONS_OBJECTS')
       rootState.accounts.accounts.forEach(account => dispatch('loadGlyBalance', account))
 
       // Check past events for each tracker
@@ -85,23 +87,19 @@ const actions = {
         dispatch('checkPastEvents', {tracker, address})
       })
 
+      commit('START_OK')
+
       if (rootState.accounts.accounts.length) {
         if (state.currentBlock === null) {
           // Use heuristic chain sync for initial syncing or normal for consecutive syncs
-          syncChainHeuristic(bus, rootState.accounts.accounts, rootState.accounts.transactions).then(currentBlock => {
-            dispatch('syncFinished', currentBlock)
-          })
+          yield dispatch('syncChainHeuristic')
         } else if (state.currentBlock !== state.lastBlock) {
           // Use noraml method to sync block between last block and current blocks
-          syncChain(bus, rootState.accounts.accounts, rootState.accounts.transactions, rootState.accounts.currentBlock).then(currentBlock => {
-            dispatch('syncFinished', currentBlock)
-          })
-        } else {
-          watchNewBlocks(bus, rootState.accounts.accounts, rootState.accounts.transactions)
+          yield dispatch('syncChain')
         }
       }
 
-      commit('START_OK')
+      watchNewBlocks(bus, rootState.accounts.accounts, rootState.accounts.transactions)
     })
       .catch(error => {
         commit('START_FAIL', error)
@@ -109,9 +107,20 @@ const actions = {
       })
   },
 
-  syncFinished ({commit, rootState}, currentBlock) {
-    commit('SYNC_FINISHED', currentBlock)
-    watchNewBlocks(bus, rootState.accounts.accounts, rootState.accounts.transactions)
+  syncChainHeuristic ({commit, rootState}) {
+    return co(function* () {
+      commit('SYNC_HEURISTIC_START')
+      const currentBlock = yield syncChainHeuristic(bus, rootState.accounts.accounts, rootState.accounts.transactions)
+      commit('SYNC_FINISH', currentBlock)
+    })
+  },
+
+  syncChain ({commit, rootState}) {
+    return co(function* () {
+      commit('SYNC_START')
+      const currentBlock = yield syncChain(bus, rootState.accounts.accounts, rootState.accounts.transactions, rootState.general.currentBlock)
+      commit('SYNC_FINISH', currentBlock)
+    })
   },
 
   /**
@@ -210,7 +219,17 @@ const mutations = {
     state.showNewAccount = false
   },
 
-  SYNC_FINISHED (state, currentBlock) {
+  SYNC_HEURISTIC_START (state) {
+    state.syncing = true
+  },
+
+  SYNC_START (state, startFrom) {
+    state.syncing = true
+    state.syncingBlock = startFrom
+  },
+
+  SYNC_FINISH (state, currentBlock) {
+    state.syncing = false
     state.currentBlock = currentBlock
     state.syncingBlock = null // Current block is updated after syncing is finished
   },

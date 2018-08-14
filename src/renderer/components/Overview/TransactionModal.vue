@@ -28,7 +28,7 @@
       </tr>
       <tr>
         <td>Value:</td>
-        <td>{{ tx.amount | ether(tx.type && tx.type.toLowerCase(), tx.type) }}</td>
+        <td>{{ tx.value | ether(tx.type && tx.type.toLowerCase(), tx.type) }}</td>
       </tr>
       </tbody>
     </table>

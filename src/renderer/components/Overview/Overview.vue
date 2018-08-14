@@ -14,7 +14,7 @@
         <tr>
           <th>Txtid</th>
           <th>Direction</th>
-          <th>Amount</th>
+          <th>Value</th>
           <th>Type</th>
           <th>Date</th>
         </tr>
@@ -23,7 +23,7 @@
         <tr class="clickable" v-for="tx in transactionsPage" @click="selectedTx = tx; showDetails = true">
           <td>{{ tx.hash }}</td>
           <td>{{ tx.direction }}</td>
-          <td>{{ tx.amount | ether(tx.type.toLowerCase(), tx.type) }}</td>
+          <td>{{ tx.value | ether(tx.type.toLowerCase(), tx.type) }}</td>
           <td>{{ tx.type }}</td>
           <td>{{ tx.date.format('YYYY-MM-DD HH:mm') }}</td>
         </tr>
@@ -83,7 +83,7 @@ export default {
     },
 
     transactionsPage () {
-      const sorted = this.transactions.slice().sort((a, b) => b - a)
+      const sorted = this.transactions.slice().sort((a, b) => b.date - a.date)
 
       if (this.showAll) return sorted
 
