@@ -9,6 +9,47 @@ import {makeTx} from './wallet'
 const debug = require('debug')('note')
 
 /**
+ * Create note from event
+ *
+ * @param event
+ */
+export const noteFromEvent = (event) => {
+  return {
+    rho: '?',
+    transactionHash: event.transactionHash,
+    value: new BN(event.value),
+    uuid: event.returnValues.uuid,
+    from: event.returnValues.from,
+    contractAddress: event.address,
+    tracker: '?',
+  }
+}
+
+/**
+ * Create note
+ *
+ * @param tracker
+ * @param rho
+ * @param {BN} value
+ * @param address
+ * @param tokenContract
+ */
+export const createNote = (tracker, rho, value, address, tokenContract) => {
+  const pk = tracker.a_pk
+  const cm = web3.zsl.getCommitment(rho, pk, value)
+
+  return {
+    rho,
+    value,
+    uuid: web3.toHex(web3.utils.sha3(cm, {encoding: 'hex'})),
+    address,
+    confirmed: true,
+    ztoken: tokenContract.address,
+    tracker: tracker.uuid,
+  }
+}
+
+/**
  * Merge notes
  *
  * @param {{}} tracker
@@ -82,7 +123,8 @@ export const shieldNote = (tracker, value, address, tokenContract) => {
       address,
     }
 
-    yield tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value).call()
+    yield tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value)
+      .send({from: address, gas: 200000})
 
     return note
   })
@@ -121,30 +163,6 @@ export const unshieldAllNotes = (tracker, account, tBalance, tokenContract) => {
  */
 export const consolidateNote = (tracker, note, transactionHash, blockNumber) => {
   return makeTx(transactionHash, 'inbound', note.value, note.tracker, tracker.zaddr, 'S', web3.eth.getBlock(blockNumber).timestamp)
-}
-
-/**
- * Create note
- *
- * @param tracker
- * @param rho
- * @param {BN} value
- * @param address
- * @param tokenContract
- */
-export const createNote = (tracker, rho, value, address, tokenContract) => {
-  const pk = tracker.a_pk
-  const cm = web3.zsl.getCommitment(rho, pk, value)
-
-  return {
-    rho,
-    value,
-    uuid: web3.toHex(web3.utils.sha3(cm, {encoding: 'hex'})),
-    address,
-    confirmed: true,
-    ztoken: tokenContract.address,
-    tracker: tracker.uuid,
-  }
 }
 
 /**

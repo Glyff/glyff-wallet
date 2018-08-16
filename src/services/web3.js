@@ -94,6 +94,7 @@ export const createUnshielding = (note, tracker, zTracker, commitment) => {
  * @param unit
  */
 export const fromWei = (value, unit) => {
+  unit = unit.toUpperCase()
   const glyff = '1000000000000'
   if (unit === 'GLX') {
     return new BN(value).div(new BN(glyff))

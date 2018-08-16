@@ -1,5 +1,4 @@
 import web3, {getGasPrice} from './web3'
-import uuid from 'uuid'
 import BN from 'bn.js'
 import co from 'co'
 import ethers from 'ethers'
@@ -8,35 +7,6 @@ import {mergeNotes, searchUTXO, sendNote, shieldNote, unshieldNote} from './note
 import WalletError from '../errors/wallet-error'
 
 const debug = require('debug')('wallet')
-
-/**
- * Create a new wallet
- *
- * @param password
- * @param oToken
- * @return {{tokenContract, account, tracker}}
- */
-export const createWallet = ({password, oToken}) => {
-  const account = {
-    address: web3.personal.newAccount(password),
-    balance: 0,
-    id: 0,
-    unlocked: false,
-  }
-
-  const tokenContract = web3.eth.contract(oToken.abi).at(oToken.address)
-
-  const tracker = Object.assign({}, web3.zsl.GenerateZKeypair(), {
-    id: 0,
-    uuid: uuid.v4(),
-    balance: 0,
-    notes: [],
-    spent: [],
-    lastBlock: web3.eth.blockNumber,
-  })
-
-  return {tokenContract, account, tracker}
-}
 
 /**
  * Make new address

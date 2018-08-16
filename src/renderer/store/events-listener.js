@@ -10,7 +10,7 @@ bus.on('glx-transfer', (tx) => {
 })
 
 bus.on('shielding', (event) => {
-  console.log('shielding')
+  store.dispatch('newShielding', event)
 })
 
 bus.on('unshielding', (event) => {

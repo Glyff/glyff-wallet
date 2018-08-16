@@ -2,6 +2,7 @@ import {createTracker} from '../../services/tracker'
 import co from 'co'
 import BN from 'bn.js'
 import {shield} from '../../services/wallet'
+import {noteFromEvent} from '../../services/note'
 
 /*
  * State
@@ -71,14 +72,13 @@ const actions = {
     })
   },
 
-  shield ({commit, rootState, rootGetters}, {tracker, amount}) {
+  shield ({dispatch, commit, rootState, rootGetters}, {tracker, amount}) {
     return co(function* () {
       amount = new BN(amount)
       commit('START_LOADING')
       commit('SHIELD')
 
       const note = yield shield(rootGetters.currentAccount, rootGetters.glyBalance, amount, tracker, rootState.general.tokenContract)
-      console.log(note)
       commit('SHIELD_OK', note)
     }).catch(err => {
       commit('SHIELD_FAIL', err)
@@ -87,6 +87,11 @@ const actions = {
       commit('STOP_LOADING')
     })
   },
+
+  newShielding ({commit}, event) {
+    const note = noteFromEvent(event)
+    commit('NEW_SHIELDING', note)
+  },
 }
 
 /*
@@ -94,29 +99,17 @@ const actions = {
  */
 const mutations = {
 
-  CREATE_TRACKER () {
-    //
-  },
-
+  CREATE_TRACKER () {},
   CREATE_TRACKER_OK (state, {account, tracker}) {
     state.trackers[account.address].push(tracker)
   },
+  CREATE_TRACKER_FAIL () {},
 
-  CREATE_TRACKER_FAIL () {
-    //
-  },
+  SHIELD (state) { },
+  SHIELD_OK (state, event) {},
+  SHIELD_FAIL (state, error) {},
 
-  SHIELD (state) {
-    //
-  },
-
-  SHIELD_OK (state, event) {
-    //
-  },
-
-  SHIELD_FAIL (state, error) {
-    //
-  },
+  NEW_SHIELDING (state, note) {},
 }
 
 export default {

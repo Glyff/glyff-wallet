@@ -1,6 +1,5 @@
 <template>
   <modal :value="value" @input="$emit('input', $event)" title="Shield Funds" size="lg">
-
     <div class="form-group" :class="{'has-error': hasErrors('zAddress')}">
       <label class="control-label">To Z-Address</label>
       <multiselect :options="trackers"
@@ -35,7 +34,7 @@
 </template>
 
 <script>
-import {mapGetters, mapActions} from 'vuex'
+import {mapGetters, mapActions, mapMutations} from 'vuex'
 import {Modal} from 'uiv'
 import pick from 'lodash-es/pick'
 import Validator from 'validatorjs'
@@ -51,6 +50,7 @@ export default {
 
   data () {
     return {
+      message: '',
       tracker: null,
       amount: '',
       errors: {},
@@ -71,14 +71,27 @@ export default {
   },
 
   methods: {
+    ...mapMutations({
+      showUnlock: 'SHOW_UNLOCK',
+    }),
+
     ...mapActions({
       shieldAction: 'shield',
+      toast: 'addToastMessage',
     }),
 
     shield () {
       if (! this.validate()) return
 
       this.shieldAction(pick(this, ['tracker', 'amount']))
+        .catch(err => {
+          if (err.message.includes('authentication')) {
+            this.toast({text: 'You need to unlock your accounts first!', type: 'danger'})
+            this.showUnlock()
+          } else {
+            this.toast({text: err.message, type: 'danger'})
+          }
+        })
     },
 
     validate () {

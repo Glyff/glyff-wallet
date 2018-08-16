@@ -1,7 +1,7 @@
 import co from 'co'
 import web3, {connect as web3Connect} from '../../services/web3'
 import bus from '../bus'
-import {checkPastEvents, syncChain, syncChainHeuristic, watchNewBlocks} from '../../services/blockchain'
+import {checkPastEvents, syncChain, syncChainHeuristic, watchEvents, watchNewBlocks} from '../../services/blockchain'
 import config from '../../config'
 
 /*
@@ -80,6 +80,7 @@ const actions = {
       yield dispatch('checkAndCreateTrackers')
       commit('ENSURE_TRANSACTIONS_OBJECTS')
       rootState.accounts.accounts.forEach(account => dispatch('loadGlyBalance', account))
+      rootState.accounts.accounts.forEach(account => dispatch('loadGlxBalance', account))
 
       commit('START_OK')
 
@@ -97,6 +98,7 @@ const actions = {
       }
 
       watchNewBlocks(bus, rootState.accounts.accounts, rootState.accounts.transactions)
+      watchEvents(bus, rootState.trackers.trackers, rootState.accounts.accounts, rootState.accounts.transactions, state.tokenContract)
     })
       .catch(error => {
         commit('START_FAIL', error)

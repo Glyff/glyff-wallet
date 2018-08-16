@@ -15,6 +15,7 @@ const accountsSchema = Joi.array().items(
   Joi.object().keys({
     name: Joi.string(),
     balance: Joi.string(),
+    glxBalance: Joi.string(),
     address: Joi.string().required(),
   }).options({ stripUnknown: true }) // Remove unknown keys
 )
@@ -47,6 +48,7 @@ const loadAccounts = () => {
   return result.value.map(account => {
     account.address = web3.utils.toChecksumAddress(account.address)
     account.balance = new BN(account.balance)
+    account.glxBalance = new BN(account.glxBalance)
     return account
   })
 }
@@ -131,6 +133,7 @@ export const saveState = (state) => {
       name: a.name,
       address: a.address,
       balance: a.balance.toString(),
+      glxBalance: a.glxBalance.toString(),
     }
   })
 

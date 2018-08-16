@@ -47,9 +47,9 @@ const getters = {
   },
 
   glxBalance (state, getters) {
-    if (! getters.currentAccount) return new BN(0)
+    if (! getters.currentAccount || ! getters.currentAccount.glxBalance) return new BN(0)
 
-    return getters.calcBalance('GLX')
+    return getters.currentAccount.glxBalance
   },
 
   calcBalance: (state, getters) => (type) => {
@@ -135,13 +135,21 @@ const actions = {
     }).catch(err => commit('LOAD_GLY_BALANCE_FAIL', err))
   },
 
+  loadGlxBalance ({commit, rootState}, {address}) {
+    return co(function* () {
+      commit('LOAD_GLX_BALANCE')
+      const glxBalance = new BN(yield rootState.general.tokenContract.methods.balanceOf(address).call())
+      commit('LOAD_GLX_BALANCE_OK', {address, glxBalance})
+    }).catch(err => commit('LOAD_GLX_BALANCE_FAIL', err))
+  },
+
   glyTransfer ({commit, dispatch, state}, tx) {
     commit('GLY_TRANSFER', tx)
     if (state.accounts.find(a => a.address === tx.to)) {
       dispatch('addToastMessage', {
         text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
         type: 'success',
-      }, {root: true})
+      })
     }
   },
 
@@ -151,7 +159,7 @@ const actions = {
       dispatch('addToastMessage', {
         text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
         type: 'success',
-      }, {root: true})
+      })
     }
   },
 
@@ -242,20 +250,23 @@ const mutations = {
     //
   },
 
-  LOAD_GLY_BALANCE (state) {
-    //
-  },
-
+  LOAD_GLY_BALANCE (state) {},
   LOAD_GLY_BALANCE_OK (state, {address, balance}) {
     const idx = state.accounts.findIndex(a => a.address === address)
     if (idx !== - 1) {
       Vue.set(state.accounts, idx, Object.assign({}, state.accounts[idx], {balance}))
     }
   },
+  LOAD_GLY_BALANCE_FAIL (state, error) {},
 
-  LOAD_GLY_BALANCE_FAIL (state, error) {
-    //
+  LOAD_GLX_BALANCE (state) {},
+  LOAD_GLX_BALANCE_OK (state, {address, glxBalance}) {
+    const idx = state.accounts.findIndex(a => a.address === address)
+    if (idx !== - 1) {
+      Vue.set(state.accounts, idx, Object.assign({}, state.accounts[idx], {glxBalance}))
+    }
   },
+  LOAD_GLX_BALANCE_FAIL (state, error) {},
 
   GLX_TRANSFER (state, tx) {
     tx = createGlxTransaction(tx)
