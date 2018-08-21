@@ -9,8 +9,8 @@ bus.on('glx-transfer', (tx) => {
   store.dispatch('glxTransfer', tx)
 })
 
-bus.on('shielding', (event) => {
-  store.dispatch('newShielding', event)
+bus.on('shielding', ({block, event}) => {
+  store.dispatch('newShielding', {block, event})
 })
 
 bus.on('unshielding', (event) => {

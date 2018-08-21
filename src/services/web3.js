@@ -88,6 +88,23 @@ export const createUnshielding = (note, tracker, zTracker, commitment) => {
 }
 
 /**
+ * Convert needed unit to wei
+ *
+ * @param value
+ * @param unit
+ */
+export const toWei = (value, unit) => {
+  unit && (unit = unit.toUpperCase())
+  const glyff = '1000000000000'
+  if (['GLX', 'GLS'].includes(unit)) {
+    return new BN(value).mul(new BN(glyff))
+  }
+  if (unit === 'GLY') unit = 'ether'
+
+  return web3.utils.toWei(value + '', unit)
+}
+
+/**
  * Convert wei to needed unit
  *
  * @param value
@@ -96,7 +113,7 @@ export const createUnshielding = (note, tracker, zTracker, commitment) => {
 export const fromWei = (value, unit) => {
   unit = unit.toUpperCase()
   const glyff = '1000000000000'
-  if (unit === 'GLX') {
+  if (['GLX', 'GLS'].includes(unit)) {
     return new BN(value).div(new BN(glyff))
   }
   if (unit === 'GLY') unit = 'ether'

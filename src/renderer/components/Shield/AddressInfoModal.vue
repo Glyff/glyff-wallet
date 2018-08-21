@@ -13,6 +13,23 @@
       </tbody>
     </table>
 
+    <h4>Notes list:</h4>
+
+    <table class="table table-hover table-fixed">
+      <tbody>
+      <tr>
+        <th style="width: 50%">Transaction Hash</th>
+        <th style="width: 40%">Contract Address</th>
+        <th style="width: 10%">Value</th>
+      </tr>
+      <tr v-for="note in confirmedNotes">
+        <td class="break-word">{{ note.txHash }}</td>
+        <td>{{ note.contract }}</td>
+        <td>{{ note.value | ether('GLX', 'GLX') }}</td>
+      </tr>
+      </tbody>
+    </table>
+
     <div slot="footer" class="text-right">
       <button class="btn btn-default" @click="$emit('input', false)">Close</button>
     </div>
@@ -28,5 +45,11 @@ export default {
   },
 
   props: ['value', 'tracker'],
+
+  computed: {
+    confirmedNotes () {
+      return this.tracker.notes.filter(note => note.confirmed)
+    }
+  }
 }
 </script>

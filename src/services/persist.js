@@ -79,9 +79,16 @@ const loadState = () => {
     })
   })
 
-  // console.log(state)
-
-  // TODO Convert trackes notes data
+  // Convert trackers data
+  Object.keys(state.trackers).forEach(addr => {
+    state.trackers[addr].forEach(tracker => {
+      tracker.balance = new BN(tracker.balance)
+      tracker.notes.forEach(note => {
+        note.value = new BN(note.value)
+        if (note.date) note.date = moment(note.date)
+      })
+    })
+  })
 
   return state
 }
@@ -142,6 +149,17 @@ export const saveState = (state) => {
     transactions[addr].forEach(tx => {
       tx.value = tx.value.toString(10)
       tx.date = tx.date.format('YYYY-MM-YY hh:mm:ss')
+    })
+  })
+
+  // Stringify trackers data
+  Object.keys(trackers).forEach(addr => {
+    trackers[addr].forEach(tracker => {
+      tracker.balance = tracker.balance.toString()
+      tracker.notes.forEach(note => {
+        note.value = note.value.toString()
+        if (note.date) note.date = note.date.format('YYYY-MM-YY hh:mm:ss')
+      })
     })
   })
 

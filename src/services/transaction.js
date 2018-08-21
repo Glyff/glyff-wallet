@@ -36,3 +36,24 @@ export const createGlyTransaction = (data) => {
     date: data.timestamp ? moment.unix(data.timestamp) : moment(),
   }
 }
+
+/**
+ * Create GLS transaction from event
+ *
+ * @param block
+ * @param tracker
+ * @param note
+ * @param type
+ * @return {*}
+ */
+export const createGlsTransaction = (block, tracker, note, type) => {
+  return {
+    type: 'GLS',
+    hash: note.txHash,
+    blockNumber: block.number,
+    from: type === 'shield' ? note.address : null,
+    to: type === 'unshiled' ? note.address : null,
+    value: new BN(note.value),
+    date: note.timestamp ? moment.unix(note.timestamp) : moment(),
+  }
+}

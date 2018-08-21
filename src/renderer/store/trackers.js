@@ -1,8 +1,7 @@
 import {createTracker} from '../../services/tracker'
 import co from 'co'
-import BN from 'bn.js'
 import {shield} from '../../services/wallet'
-import {noteFromEvent} from '../../services/note'
+import moment from 'moment/moment'
 
 /*
  * State
@@ -74,12 +73,11 @@ const actions = {
 
   shield ({dispatch, commit, rootState, rootGetters}, {tracker, amount}) {
     return co(function* () {
-      amount = new BN(amount)
       commit('START_LOADING')
       commit('SHIELD')
 
       const note = yield shield(rootGetters.currentAccount, rootGetters.glyBalance, amount, tracker, rootState.general.tokenContract)
-      commit('SHIELD_OK', note)
+      commit('SHIELD_OK', {tracker, note})
     }).catch(err => {
       commit('SHIELD_FAIL', err)
       throw err
@@ -88,9 +86,24 @@ const actions = {
     })
   },
 
-  newShielding ({commit}, event) {
-    const note = noteFromEvent(event)
-    commit('NEW_SHIELDING', note)
+  newShielding ({commit, dispatch, getters}, {block, event}) {
+    commit('NEW_SHIELDING', {block, event})
+    // Search all trackers for a note ("some" is used to stop searching right after note is found)
+    let note
+    const tracker = getters.currentTrackers.find(tracker => {
+      let n = tracker.notes.find(note => note.txHash === event.transactionHash)
+      if (n) {
+        note = n
+        return true
+      }
+      return false
+    })
+    if (! note) {
+      commit('NEW_SHIELDING_FAIL', {block, event})
+    } else {
+      commit('NEW_SHIELDING_OK', {block, tracker, note})
+      dispatch('glsTransfer', {block, tracker, note, type: 'shield'})
+    }
   },
 }
 
@@ -106,10 +119,22 @@ const mutations = {
   CREATE_TRACKER_FAIL () {},
 
   SHIELD (state) { },
-  SHIELD_OK (state, event) {},
+  SHIELD_OK (state, {tracker, note}) {
+    tracker.notes.push(note)
+  },
   SHIELD_FAIL (state, error) {},
 
-  NEW_SHIELDING (state, note) {},
+  UNSHIELD (state) {},
+  UNSHIELD_OK (state, {tracker, note}) {},
+  UNSHIELD_FAIL (state, error) {},
+
+  NEW_SHIELDING (state) {},
+  NEW_SHIELDING_FAIL (state, event) {},
+  NEW_SHIELDING_OK (state, {block, tracker, note}) {
+    note.confirmed = true
+    note.date = moment.unix(block.timestamp)
+    tracker.balance = tracker.balance.add(note.value)
+  },
 }
 
 export default {

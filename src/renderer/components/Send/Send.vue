@@ -64,18 +64,19 @@ export default {
     return {
       recipient: '',
       amount: '',
-      gasPrice: '21',
+      gasPrice: 21,
       errors: {},
     }
   },
 
   mounted () {
+    // Gas price in Gwei
     web3.eth.getGasPrice((_, gas) => (this.gasPrice = gas / 1000000000))
   },
 
   computed: {
     fee () {
-      return fromWei(this.gasPrice * 21001) * 1000000000
+      return fromWei(this.gasPrice * 21001, 'GLY') * 1000000000
     },
   },
 

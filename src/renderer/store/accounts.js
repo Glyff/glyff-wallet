@@ -1,8 +1,8 @@
 import BN from 'bn.js'
 import Vue from 'vue'
 import co from 'co'
-import web3, {fromWei, isUnlocked} from '../../services/web3'
-import {createGlxTransaction, createGlyTransaction} from '../../services/transaction'
+import web3, {fromWei, isUnlocked, toWei} from '../../services/web3'
+import {createGlsTransaction, createGlxTransaction, createGlyTransaction} from '../../services/transaction'
 
 /*
  * State
@@ -143,26 +143,6 @@ const actions = {
     }).catch(err => commit('LOAD_GLX_BALANCE_FAIL', err))
   },
 
-  glyTransfer ({commit, dispatch, state}, tx) {
-    commit('GLY_TRANSFER', tx)
-    if (state.accounts.find(a => a.address === tx.to)) {
-      dispatch('addToastMessage', {
-        text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
-        type: 'success',
-      })
-    }
-  },
-
-  glxTransfer ({commit, dispatch, state}, tx) {
-    commit('GLX_TRANSFER', tx)
-    if (state.accounts.find(a => a.address === tx.to)) {
-      dispatch('addToastMessage', {
-        text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
-        type: 'success',
-      })
-    }
-  },
-
   sendGly ({commit, state, getters, dispatch}, data) {
     return co(function* () {
       commit('START_LOADING')
@@ -170,7 +150,7 @@ const actions = {
       const atts = {
         from: state.selectedAddress,
         to: data.recipient,
-        value: web3.utils.toWei(data.amount),
+        value: toWei(data.amount, 'GLY'),
         gasPrice: data.gasPrice * 1000000000,
         gasLimit: '0x55f0', // // 22000 Wei
       }
@@ -188,6 +168,39 @@ const actions = {
     })
   },
 
+  glyTransfer ({commit, dispatch, state}, tx) {
+    tx = createGlyTransaction(tx)
+    commit('ADD_TRANSACTION', tx)
+    if (state.accounts.find(a => a.address === tx.to)) {
+      dispatch('addToastMessage', {
+        text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
+        type: 'success',
+      })
+    }
+  },
+
+  glxTransfer ({commit, dispatch, state}, tx) {
+    tx = createGlxTransaction(tx)
+    commit('ADD_TRANSACTION', tx)
+    if (state.accounts.find(a => a.address === tx.to)) {
+      dispatch('addToastMessage', {
+        text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
+        type: 'success',
+      })
+    }
+  },
+
+  glsTransfer ({commit, dispatch, state}, {block, tracker, note, type}) {
+    const tx = createGlsTransaction(block, tracker, note, type)
+    commit('ADD_TRANSACTION', tx)
+    if (state.accounts.find(a => a.address === tx.to)) {
+      dispatch('addToastMessage', {
+        text: 'You just recieved ' + fromWei(tx.value, tx.type) + ' ' + tx.type + ' from ' + tx.from,
+        type: 'success',
+      })
+    }
+  },
+
 }
 
 /*
@@ -203,19 +216,13 @@ const mutations = {
     })
   },
 
-  CREATE_ACCOUNT (state) {
-    //
-  },
-
+  CREATE_ACCOUNT (state) {},
   CREATE_ACCOUNT_OK (state, account) {
     state.accounts.push(Object.assign({}, account, {locked: false}))
     state.selectedAddress = account.address
     state.transactions[account.address] = []
   },
-
-  CREATE_ACCOUNT_FAIL (state, error) {
-    //
-  },
+  CREATE_ACCOUNT_FAIL (state, error) {},
 
   UPDATE_ACCOUNT_OK (state, data) {
     state.accounts.find(a => a.address === data.address).name = data.name
@@ -225,30 +232,18 @@ const mutations = {
     state.selectedAddress = account.address
   },
 
-  LOCK_ACCOUNT (state, account) {
-    //
-  },
-
+  LOCK_ACCOUNT (state, account) {},
   LOCK_ACCOUNT_OK (state, {address}) {
     state.accounts.find(a => a.address.toLowerCase() === address.toLowerCase()).locked = true
   },
+  LOCK_ACCOUNT_FAIL (state, account) {},
 
-  LOCK_ACCOUNT_FAIL (state, account) {
-    //
-  },
-
-  UNLOCK_ACCOUNT (state, account) {
-    //
-  },
-
+  UNLOCK_ACCOUNT (state, account) {},
   UNLOCK_ACCOUNT_OK (state, {address}) {
     const accIdx = state.accounts.findIndex(a => a.address.toLowerCase() === address.toLowerCase())
     Vue.set(state.accounts, accIdx, Object.assign(state.accounts[accIdx], {locked: false}))
   },
-
-  UNLOCK_ACCOUNT_FAIL (state, account) {
-    //
-  },
+  UNLOCK_ACCOUNT_FAIL (state, account) {},
 
   LOAD_GLY_BALANCE (state) {},
   LOAD_GLY_BALANCE_OK (state, {address, balance}) {
@@ -268,8 +263,11 @@ const mutations = {
   },
   LOAD_GLX_BALANCE_FAIL (state, error) {},
 
-  GLX_TRANSFER (state, tx) {
-    tx = createGlxTransaction(tx)
+  SEND_GLY (state) {},
+  SEND_GLY_OK (state, tx) {},
+  SEND_GLY_FAIL (state, err) {},
+
+  ADD_TRANSACTION (state, tx) {
     const fromAccount = state.accounts.find(a => a.address === tx.from)
     const toAccount = state.accounts.find(a => a.address === tx.to)
 
@@ -280,34 +278,6 @@ const mutations = {
     if (toAccount) {
       state.transactions[toAccount.address].push(Object.assign({}, tx, {direction: 'in'}))
     }
-  },
-
-  GLY_TRANSFER (state, tx) {
-    tx = createGlyTransaction(tx)
-    const fromAccount = state.accounts.find(a => a.address === tx.from)
-    const toAccount = state.accounts.find(a => a.address === tx.to)
-
-    if (fromAccount) {
-      state.transactions[fromAccount.address].push(Object.assign({}, tx, {direction: 'out'}))
-      // fromAccount.balance = fromAccount.balance.sub(tx.value)
-    }
-
-    if (toAccount) {
-      state.transactions[toAccount.address].push(Object.assign({}, tx, {direction: 'in'}))
-      // toAccount.balance = toAccount.balance.add(tx.value)
-    }
-  },
-
-  SEND_GLY (state) {
-    //
-  },
-
-  SEND_GLY_OK (state, tx) {
-    //
-  },
-
-  SEND_GLY_FAIL (state, err) {
-    //
   },
 }
 

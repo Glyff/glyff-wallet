@@ -39,6 +39,7 @@ import {Modal} from 'uiv'
 import pick from 'lodash-es/pick'
 import Validator from 'validatorjs'
 import Multiselect from 'vue-multiselect/src/Multiselect.vue'
+import {toWei} from '../../../services/web3'
 
 export default {
   components: {
@@ -83,7 +84,7 @@ export default {
     shield () {
       if (! this.validate()) return
 
-      this.shieldAction(pick(this, ['tracker', 'amount']))
+      this.shieldAction({tracker: this.tracker, amount: toWei(this.amount, 'GLX')})
         .catch(err => {
           if (err.message.includes('authentication')) {
             this.toast({text: 'You need to unlock your accounts first!', type: 'danger'})
@@ -96,7 +97,7 @@ export default {
 
     validate () {
       const validation = new Validator(pick(this, ['amount']), {
-        amount: 'required',
+        amount: 'required|numeric|min:0.00000000000001',
       })
 
       if (validation.fails()) {

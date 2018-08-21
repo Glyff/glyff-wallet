@@ -88,6 +88,7 @@ export const sendAmount = (account, toAddress, amount, gasPrice) => {
  */
 export const shield = (account, glyBalance, amount, tracker, tokenContract) => {
   return co(function* () {
+    debug('shield: shielding ' + amount.toString() + ' GLX')
     if (amount.isZero() || amount.lt(0)) throw new WalletError('Amount should be more than 0', 'ZERO_AMOUNT')
 
     const glxBalance = new BN(yield tokenContract.methods.balanceOf(account.address).call())

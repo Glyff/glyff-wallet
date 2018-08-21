@@ -241,9 +241,9 @@ export const processEvent = (event, bus, trackers, accounts, transactions) => {
     const block = yield web3.eth.getBlock(event.blockNumber)
 
     if (['LogShielding', 'LogUnshielding', 'LogShieldedTransfer'].includes(event.event)) {
-      // Check if note already added to any trackers
-      // TODO check all trackers
-      // if (trackers.find(tr => tr.notes.find(n => n.uuid === event.args.uuid))) return
+      // Check if we have this unconfirmed note
+      if (! Object.values(trackers).find(accTrackers => accTrackers.find(tracker =>
+        tracker.notes.find(n => ! n.confirmed && n.txHash === event.transactionHash)))) return
     }
 
     switch (event.event) {
@@ -256,9 +256,9 @@ export const processEvent = (event, bus, trackers, accounts, transactions) => {
 
         return bus.emit('glx-transfer', Object.assign({}, event, {timestamp: block.timestamp}))
       case 'LogShielding':
-        return bus.emit('shielding', event)
+        return bus.emit('shielding', {block, event})
       case 'LogUnshielding':
-        return bus.emit('unshielding', event)
+        return bus.emit('unshielding', {block, event})
       case 'LogShieldedTransfer':
       // TODO find needed tracker?
       // const note = decryptBlob(tracker, event.returnValues.blob, event.returnValues.from.toString(), tokenContract)

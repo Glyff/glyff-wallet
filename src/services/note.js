@@ -9,23 +9,6 @@ import {makeTx} from './wallet'
 const debug = require('debug')('note')
 
 /**
- * Create note from event
- *
- * @param event
- */
-export const noteFromEvent = (event) => {
-  return {
-    rho: '?',
-    transactionHash: event.transactionHash,
-    value: new BN(event.value),
-    uuid: event.returnValues.uuid,
-    from: event.returnValues.from,
-    contractAddress: event.address,
-    tracker: '?',
-  }
-}
-
-/**
  * Create note
  *
  * @param tracker
@@ -36,16 +19,15 @@ export const noteFromEvent = (event) => {
  */
 export const createNote = (tracker, rho, value, address, tokenContract) => {
   const pk = tracker.a_pk
-  const cm = web3.zsl.getCommitment(rho, pk, value)
+  const cm = web3.zsl.getCommitment(rho, pk, value.toNumber())
 
   return {
     rho,
     value,
     uuid: web3.toHex(web3.utils.sha3(cm, {encoding: 'hex'})),
     address,
-    confirmed: true,
+    confirmed: false,
     ztoken: tokenContract.address,
-    tracker: tracker.uuid,
   }
 }
 
@@ -114,19 +96,23 @@ export const shieldNote = (tracker, value, address, tokenContract) => {
     const result = yield web3.zsl.createShielding(rho, tracker.a_pk, value.toNumber())
     debug('Generating finished')
 
-    const note = {
+    const txHash = yield new Promise((resolve, reject) => {
+      tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value)
+        .send({from: address, gas: 200000}, (err, hash) => {
+          if (err) reject(err)
+          resolve(hash)
+        })
+    })
+
+    return {
+      txHash,
       rho,
       value,
-      uuid: web3.utils.toHex(web3.utils.sha3(result.cm, {encoding: 'hex'})),
-      tokenContract: tokenContract.address,
-      confirmed: false,
+      // uuid: web3.utils.toHex(web3.utils.sha3(result.cm, {encoding: 'hex'})),
+      contract: tokenContract.options.address,
       address,
+      confirmed: false,
     }
-
-    yield tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value)
-      .send({from: address, gas: 200000})
-
-    return note
   })
 }
 
