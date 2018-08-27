@@ -111,28 +111,31 @@ export const shield = (account, glyBalance, amount, tracker, tokenContract) => {
  * Unshield amount
  *
  * @param account
- * @param {BN} tBalance
+ * @param glyBalance
  * @param {BN} amount
  * @param tracker
  * @param tokenContract
  * @return {Promise<any>}
  */
-export const unshield = (account, tBalance, amount, tracker, tokenContract) => {
+export const unshield = (account, glyBalance, amount, tracker, tokenContract) => {
   return co(function* () {
-    const gasPrice = yield getGasPrice()
-    const totalGas = gasPrice.multipliedBy(config.unshieldGas)
-    debug('Total shield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
+    debug('unshield: unshielding ' + amount.toString() + ' GLS')
 
-    // TODO: should check if it's enough gas to unshield all needed notes and shield the change afterwards
-    if (tBalance.lt(totalGas)) { throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE') }
+    if (amount.isZero()) throw new WalletError('Amount should be more than 0', 'ZERO_AMOUNT')
+    if (amount.gt(tracker.balance)) throw new WalletError('Not enough shielded balance', 'NOT_ENOUGH_GLS')
 
     const notes = tracker.notes.filter(n => n.address === account.address) // Get notes for address
     const totalShielded = notes.reduce((acc, n) => acc.add(n.value), new BN(0))
-    if (amount.lt(totalShielded)) { throw new WalletError('Not enough shielded balance', 'NOT_ENOUGH_SHIELDED') }
-
     const {unspent, value} = searchUTXO(notes, amount)
     const change = value.sub(amount)
-    debug('Total in unspent: ' + totalShielded + '; total filtered: ' + value + '; change: ' + change)
+    debug('unshield: total in unspent: ' + totalShielded + '; total filtered: ' + value + '; change: ' + change)
+
+    const gasPrice = yield getGasPrice()
+    const totalGas = gasPrice.mul(config.unshieldGas)
+    debug('unshield: total shield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
+
+    // TODO: should check if it's enough gas to unshield all needed notes and shield the change afterwards
+    if (glyBalance.lt(totalGas)) { throw new WalletError('Insufficient funds for gas + price', 'NOT_ENOUGH_T_BALANCE') }
 
     // Simultaneously unshield notes (async)
     yield unspent.map(note => {

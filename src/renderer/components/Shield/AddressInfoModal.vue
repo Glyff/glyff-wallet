@@ -48,7 +48,7 @@ export default {
 
   computed: {
     confirmedNotes () {
-      return this.tracker.notes.filter(note => note.confirmed)
+      return this.tracker.notes && this.tracker.notes.filter(note => note.confirmed)
     }
   }
 }

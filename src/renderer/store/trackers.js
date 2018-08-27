@@ -1,6 +1,6 @@
 import {createTracker} from '../../services/tracker'
 import co from 'co'
-import {shield} from '../../services/wallet'
+import {shield, unshield} from '../../services/wallet'
 import moment from 'moment/moment'
 
 /*
@@ -22,7 +22,6 @@ const getters = {
 
     return state.trackers[rootState.accounts.selectedAddress]
   },
-
 }
 
 /*
@@ -105,6 +104,21 @@ const actions = {
       dispatch('glsTransfer', {block, tracker, note, type: 'shield'})
     }
   },
+
+  unshield ({dispatch, commit, rootState, rootGetters}, {tracker, amount}) {
+    return co(function* () {
+      commit('START_LOADING')
+      commit('UNSHIELD')
+
+      const note = yield unshield(rootGetters.currentAccount, rootGetters.glyBalance, amount, tracker, rootState.general.tokenContract)
+      commit('UNSHIELD_OK', {tracker, note})
+    }).catch(err => {
+      commit('UNSHIELD_FAIL', err)
+      throw err
+    }).finally(() => {
+      commit('STOP_LOADING')
+    })
+  },
 }
 
 /*
@@ -125,7 +139,10 @@ const mutations = {
   SHIELD_FAIL (state, error) {},
 
   UNSHIELD (state) {},
-  UNSHIELD_OK (state, {tracker, note}) {},
+  UNSHIELD_OK (state, {tracker, removedNotes, addedNotes}) {
+    // TODO
+    tracker.notes.push(addedNotes)
+  },
   UNSHIELD_FAIL (state, error) {},
 
   NEW_SHIELDING (state) {},

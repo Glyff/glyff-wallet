@@ -12,7 +12,7 @@
       <div class="col-md-12 table-content-top-btn-block">
         <a href="#" @click.prevent="newAddress()"><img src="@/assets/images/plus-icon.png">New Z-Address</a>
         <a href="#" @click.prevent="showShield = true"><img src="@/assets/images/chart-icon.png">Shield</a>
-        <a href="#"><img src="@/assets/images/chart-icon.png">Unshield</a>
+        <a href="#" @click.prevent="showUnshield = true"><img src="@/assets/images/chart-icon.png">Unshield</a>
         <a href="#"><img src="@/assets/images/send-small-icon.png">Send</a>
         <a href="#"><img src="@/assets/images/reset-icon.png">Reset</a>
       </div>
@@ -39,6 +39,7 @@
     </div>
     <address-info-modal v-model="showAddressInfo" :tracker="selectedTracker"></address-info-modal>
     <shield-modal v-model="showShield"></shield-modal>
+    <unshield-modal v-model="showUnshield"></unshield-modal>
   </div>
 </template>
 
@@ -47,12 +48,14 @@ import {mapGetters, mapActions} from 'vuex'
 import Balances from '../Layout/Balances'
 import AddressInfoModal from './AddressInfoModal'
 import ShieldModal from './ShieldModal'
+import UnshieldModal from './UnshieldModal'
 
 export default {
   components: {
     Balances,
     AddressInfoModal,
     ShieldModal,
+    UnshieldModal,
   },
 
   data () {
@@ -60,6 +63,7 @@ export default {
       selectedTracker: {},
       showAddressInfo: false,
       showShield: false,
+      showUnshield: false,
     }
   },
 

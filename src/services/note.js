@@ -108,7 +108,7 @@ export const shieldNote = (tracker, value, address, tokenContract) => {
       txHash,
       rho,
       value,
-      // uuid: web3.utils.toHex(web3.utils.sha3(result.cm, {encoding: 'hex'})),
+      uuid: web3.utils.toHex(web3.utils.sha3(result.cm, {encoding: 'hex'})),
       contract: tokenContract.options.address,
       address,
       confirmed: false,
@@ -160,7 +160,7 @@ export const consolidateNote = (tracker, note, transactionHash, blockNumber) => 
  */
 export const searchUTXO = (notes, amount) => {
   // Find exact match
-  const exactMatch = notes.find(n => n.value.isEqualTo(amount))
+  const exactMatch = notes.find(n => n.value.eq(amount))
   if (exactMatch) {
     debug('Found exact note match')
     return {
