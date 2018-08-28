@@ -198,7 +198,7 @@ export const searchUTXO = (notes, amount) => {
   }
 
   return {
-    unspent: foundNotes,
+    notes: foundNotes,
     value: totalFound,
   }
 }

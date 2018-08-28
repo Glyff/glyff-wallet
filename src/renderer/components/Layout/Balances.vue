@@ -2,12 +2,12 @@
   <div class="clearfix balance-and-export-data-block">
     <div class="balance green-balance">
       <img src="@/assets/images/white-target-icon.png" />
-      <a href="#" class="anchor green-anchor">{{ glyBalance | ether('GLY', 'GLY') }}</a>
+      <a href="#" class="anchor green-anchor"><span class="balance-value">{{ glyBalance | ether('', 'GLY') }}</span> GLY</a>
       <small>T-balance</small>
     </div>
     <div class="balance white-balance">
       <img src="@/assets/images/green-target-icon.png" />
-      <a href="#" class="anchor white-anchor">{{ glxBalance | ether('GLX', 'GLX') }}</a>
+      <a href="#" class="anchor white-anchor"><span class="balance-value">{{ glxBalance | ether('', 'GLX') }}</span> GLX</a>
       <small>S-balance</small>
     </div>
     <div class="balance white-balance export">
