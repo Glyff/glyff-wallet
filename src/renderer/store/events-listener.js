@@ -13,8 +13,8 @@ bus.on('shielding', ({block, event}) => {
   store.dispatch('newShielding', {block, event})
 })
 
-bus.on('unshielding', (event) => {
-  console.log('unshielding')
+bus.on('unshielding', ({block, event}) => {
+  store.dispatch('newUnshielding', {block, event})
 })
 
 bus.on('shielded-transfer', (event) => {

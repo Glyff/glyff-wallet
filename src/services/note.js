@@ -1,10 +1,9 @@
-import web3, {createShieldedTransfer, createUnshielding, getGasPrice} from './web3'
+import web3, {createShieldedTransfer, getGasPrice} from './web3'
 import BN from 'bn.js'
 import co from 'co'
 import config from '../config'
 import NoteError from '../errors/note-error'
 import BalanceError from '../errors/balance-error'
-import {makeTx} from './wallet'
 
 const debug = require('debug')('note')
 
@@ -29,6 +28,37 @@ export const createNote = (tracker, rho, value, address, tokenContract) => {
     confirmed: false,
     ztoken: tokenContract.address,
   }
+}
+
+/**
+ * Find note and trackers in trackers list by hash
+ *
+ * @param trackers
+ * @param uuid
+ */
+export const findNoteAndTracker = (trackers, uuid) => {
+  let note
+  let tracker
+  let address
+
+  // Search all accounts
+  Object.keys(trackers).find(addr => {
+    // Search all trackers in account
+    return trackers[addr].find(accTracker => {
+      let n = accTracker.notes.find(note => note.uuid === uuid)
+      if (n) {
+        note = n
+        tracker = accTracker
+        address = addr
+        return true
+      }
+      return false
+    })
+  })
+
+  console.log('findNoteAndTracker', {address, tracker, note})
+
+  return {address, tracker, note}
 }
 
 /**
@@ -61,25 +91,6 @@ export const mergeNotes = (tracker, amount, account, tokenContract) => {
 }
 
 /**
- * Unshield single note
- *
- * @param note
- * @param tracker
- * @param address
- * @param tokenContract
- * @return {Promise<any>}
- */
-export const unshieldNote = (note, tracker, address, tokenContract) => {
-  return co(function* () {
-    const cm = yield web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value)
-    const unsh = yield createUnshielding(note, tracker, tokenContract, cm)
-    const root = tokenContract.root()
-
-    return yield tokenContract.unshield(unsh.proof, unsh.spend_nf, cm, root, note.value, {from: address, gas: config.unshieldGas})
-  })
-}
-
-/**
  * Shield a note
  *
  * @param tracker
@@ -92,9 +103,9 @@ export const shieldNote = (tracker, value, address, tokenContract) => {
   return co(function* () {
     const rho = yield web3.zsl.getRandomness()
 
-    debug('Generating proof for shielding - value : ' + value)
+    debug('shieldNote: generating proof for shielding - value : ' + value)
     const result = yield web3.zsl.createShielding(rho, tracker.a_pk, value.toNumber())
-    debug('Generating finished')
+    debug('shieldNote: generating finished')
 
     const txHash = yield new Promise((resolve, reject) => {
       tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value)
@@ -113,6 +124,37 @@ export const shieldNote = (tracker, value, address, tokenContract) => {
       address,
       confirmed: false,
     }
+  })
+}
+
+/**
+ * Unshield single note
+ *
+ * @param note
+ * @param tracker
+ * @param address
+ * @param tokenContract
+ * @return {Promise<string>} Tx hash
+ */
+export const unshieldNote = (note, tracker, address, tokenContract) => {
+  return co(function* () {
+    debug('unshieldNote: generating proof for unshielding')
+    const cm = yield web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value.toNumber())
+    const witnesses = yield tokenContract.methods.getWitness(cm).call()
+    const treeIndex = parseInt(witnesses[0])
+    const authPath = witnesses[1]
+    const root = yield tokenContract.methods.root().call()
+    console.log({cm, witnesses, root})
+    const unsh = yield web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value.toNumber(), treeIndex, authPath)
+    debug('unshieldNote: generating finished')
+
+    return yield new Promise((resolve, reject) => {
+      tokenContract.methods.unshield(unsh.proof, unsh.send_nf, cm, root, note.value.toNumber())
+        .send({from: address, gas: config.unshieldGas}, (err, hash) => {
+          if (err) reject(err)
+          resolve(hash)
+        })
+    })
   })
 }
 
@@ -139,19 +181,6 @@ export const unshieldAllNotes = (tracker, account, tBalance, tokenContract) => {
 }
 
 /**
- * Consolidate note
- *
- * @param tracker
- * @param note
- * @param transactionHash
- * @param blockNumber
- * @return {{}}
- */
-export const consolidateNote = (tracker, note, transactionHash, blockNumber) => {
-  return makeTx(transactionHash, 'inbound', note.value, note.tracker, tracker.zaddr, 'S', web3.eth.getBlock(blockNumber).timestamp)
-}
-
-/**
  * Search unspent transactions outputs
  *
  * @param {array} notes
@@ -164,7 +193,7 @@ export const searchUTXO = (notes, amount) => {
   if (exactMatch) {
     debug('Found exact note match')
     return {
-      unspent: [exactMatch],
+      notes: [exactMatch],
       value: exactMatch.value,
     }
   }
@@ -177,7 +206,7 @@ export const searchUTXO = (notes, amount) => {
   if (biggerMatch) {
     debug('Found bigger note match')
     return {
-      unspent: [biggerMatch],
+      notes: [biggerMatch],
       value: biggerMatch.value,
     }
   }

@@ -84,7 +84,7 @@ export const createUnshielding = (note, tracker, zTracker, commitment) => {
   const treeIndex = parseInt(witnesses[0])
   const authPath = witnesses[1]
 
-  return web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value, treeIndex, authPath)
+  return web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value.toNumber(), treeIndex, authPath)
 }
 
 /**

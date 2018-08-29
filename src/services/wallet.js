@@ -133,8 +133,7 @@ export const unshield = (account, glyBalance, amount, tracker, tokenContract) =>
     const totalGas = gasPrice.mul(config.unshieldGas).mul(new BN(notes.length + (change.gt(0) ? 1 : 0)))
     debug('unshield: total shield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
 
-    // TODO: should check if it's enough gas to unshield all needed notes and shield the change afterwards
-    if (glyBalance.lt(totalGas)) { throw new WalletError('Insufficient GLY funds for gas + price', 'NOT_ENOUGH_T_BALANCE') }
+    if (glyBalance.lt(totalGas)) throw new WalletError('Insufficient GLY funds for gas + price', 'NOT_ENOUGH_T_BALANCE')
 
     // Simultaneously unshield notes (async)
     yield notes.map(note => {
