@@ -144,7 +144,7 @@ export const unshieldNote = (note, tracker, address, tokenContract) => {
     const treeIndex = parseInt(witnesses[0])
     const authPath = witnesses[1]
     const root = yield tokenContract.methods.root().call()
-    console.log({cm, witnesses, root})
+    // console.log({cm, witnesses, root})
     const unsh = yield web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value.toNumber(), treeIndex, authPath)
     debug('unshieldNote: generating finished')
 

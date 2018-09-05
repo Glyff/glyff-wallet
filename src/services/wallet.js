@@ -141,7 +141,8 @@ export const unshield = (account, glyBalance, amount, tracker, tokenContract) =>
     })
 
     // Shield back change
-    if (change.gt(0)) {
+    if (! change.isZero()) {
+      debug('unshield: shielding change ' + change.toString())
       yield shieldNote(tracker, change, account.address, tokenContract)
     }
   })

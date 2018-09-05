@@ -1,6 +1,6 @@
 <template>
   <modal :value="value" @input="$emit('input', $event)" title="Unshield Funds" size="lg">
-    <div class="form-group" :class="{'has-error': hasErrors('zAddress')}">
+    <div class="form-group" :class="{'has-error': hasErrors('tracker')}">
       <label class="control-label">From Z-Address</label>
       <multiselect :options="trackers"
                    v-model="tracker"
@@ -10,7 +10,7 @@
                    :allow-empty="false"
                    :show-labels="false"
       ></multiselect>
-      <span class="help-block" v-if="hasErrors('zAddress')">{{ getErrors('zAddress') }}</span>
+      <span class="help-block" v-if="hasErrors('tracker')">{{ getErrors('tracker') }}</span>
     </div>
 
     <div class="form-group" :class="{'has-error': hasErrors('amount')}">
@@ -68,6 +68,7 @@ export default {
   computed: {
     ...mapGetters({
       trackers: 'currentTrackers',
+      account: 'currentAccount',
     }),
 
     glsBalance () {
@@ -87,6 +88,7 @@ export default {
 
     unshield () {
       if (! this.validate()) return
+      if (this.account.locked) return this.showUnlock()
 
       this.unshieldAction({tracker: this.tracker, amount: toWei(this.amount, 'GLX')})
         .catch(err => {
@@ -100,7 +102,8 @@ export default {
     },
 
     validate () {
-      const validation = new Validator(pick(this, ['amount']), {
+      const validation = new Validator(pick(this, ['amount', 'tracker']), {
+        tracker: 'required',
         amount: 'required|numeric|min:0.00000000000001',
       })
 

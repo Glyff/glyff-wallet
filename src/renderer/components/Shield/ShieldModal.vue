@@ -68,6 +68,7 @@ export default {
     ...mapGetters({
       trackers: 'currentTrackers',
       glxBalance: 'glxBalance',
+      account: 'currentAccount',
     }),
   },
 
@@ -83,6 +84,7 @@ export default {
 
     shield () {
       if (! this.validate()) return
+      if (this.account.locked) return this.showUnlock()
 
       this.shieldAction({tracker: this.tracker, amount: toWei(this.amount, 'GLX')})
         .then(() => {
