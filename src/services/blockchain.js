@@ -11,6 +11,8 @@ const debug = require('debug')('blockchain')
  * Watch new blocks
  *
  * @param bus
+ * @param accounts
+ * @param transactions
  */
 export const watchNewBlocks = (bus, accounts, transactions) => {
   web3.eth.subscribe('newBlockHeaders', function (error, result) {

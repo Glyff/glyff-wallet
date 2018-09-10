@@ -91,6 +91,10 @@ export default {
       if (this.account.locked) return this.showUnlock()
 
       this.unshieldAction({tracker: this.tracker, amount: toWei(this.amount, 'GLX')})
+        .then(() => {
+          this.$emit('input', false)
+          this.toast({text: 'Successfully send unshieling transaction, please wait until it\'s mined', type: 'success'})
+        })
         .catch(err => {
           if (err.message.includes('authentication')) {
             this.toast({text: 'You need to unlock your accounts first!', type: 'danger'})
