@@ -150,7 +150,7 @@ export const unshieldNote = (note, tracker, address, tokenContract) => {
 
     return yield new Promise((resolve, reject) => {
       tokenContract.methods.unshield(unsh.proof, unsh.send_nf, cm, root, note.value.toNumber())
-        .send({from: address, gas: config.unshieldGas}, (err, hash) => {
+        .send({from: address, gas: config.unshieldGas.toNumber()}, (err, hash) => {
           if (err) reject(err)
           resolve(hash)
         })
