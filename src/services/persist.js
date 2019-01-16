@@ -139,8 +139,8 @@ export const saveState = (state) => {
     return {
       name: a.name,
       address: a.address,
-      balance: a.balance.toString(),
-      glxBalance: a.glxBalance.toString(),
+      balance: a.balance ? a.balance.toString() : '0',
+      glxBalance: a.glxBalance ? a.glxBalance.toString() : '0',
     }
   })
 
