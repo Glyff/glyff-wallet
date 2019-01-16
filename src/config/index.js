@@ -5,7 +5,7 @@ export default {
 
   // Node settings
   node: {
-    host: '10.10.4.20',
+    host: '127.0.0.1',
     port: 8545,
     // port: 18545,
   },

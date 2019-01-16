@@ -170,6 +170,10 @@ export const saveState = (state) => {
     oToken: state.general.oToken,
   }
 
+  if (! fs.existsSync(config.homeDir)) {
+    fs.mkdirSync(config.homeDir)
+  }
+
   return co(function* () {
     fs.writeJsonSync(accountsPath, accounts)
     fs.writeJsonSync(statePath, stateData)
