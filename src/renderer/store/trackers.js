@@ -21,7 +21,7 @@ const getters = {
   currentTrackers (state, getters, rootState) {
     if (! rootState.accounts.selectedAddress) return []
 
-    return state.trackers[rootState.accounts.selectedAddress]
+    return state.trackers[rootState.accounts.selectedAddress] || []
   },
 }
 
@@ -131,6 +131,8 @@ const mutations = {
 
   CREATE_TRACKER () {},
   CREATE_TRACKER_OK (state, {account, tracker}) {
+    if (! state.trackers[account.address]) state.trackers[account.address] = []
+
     state.trackers[account.address].push(tracker)
   },
   CREATE_TRACKER_FAIL () {},
