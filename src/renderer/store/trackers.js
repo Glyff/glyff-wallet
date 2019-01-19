@@ -91,8 +91,8 @@ const actions = {
       commit('START_LOADING')
       commit('UNSHIELD')
 
-      const note = yield unshield(rootGetters.currentAccount, rootGetters.glyBalance, amount, tracker, rootState.general.tokenContract)
-      commit('UNSHIELD_OK', {tracker, note})
+      const {removedNotes, addedNotes} = yield unshield(rootGetters.currentAccount, rootGetters.glyBalance, amount, tracker, rootState.general.tokenContract)
+      commit('UNSHIELD_OK', {tracker, removedNotes, addedNotes})
     }).catch(err => {
       commit('UNSHIELD_FAIL', err)
       throw err
@@ -145,7 +145,9 @@ const mutations = {
 
   UNSHIELD (state) {},
   UNSHIELD_OK (state, {tracker, removedNotes, addedNotes}) {
-    // TODO
+    tracker.notes = tracker.notes.filter(note => {
+      return ! removedNotes.find(rm => rm.uuid === note.uuid)
+    })
     tracker.notes.push(addedNotes)
   },
   UNSHIELD_FAIL (state, error) {},

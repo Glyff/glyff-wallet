@@ -127,11 +127,12 @@ export const unshield = (account, glyBalance, amount, tracker, tokenContract) =>
     const totalShielded = tracker.notes.reduce((acc, n) => acc.add(n.value), new BN(0))
     const {notes, value} = searchUTXO(tracker.notes, amount)
     const change = value.sub(amount)
+    const addedNotes = []
     debug('unshield: total in unspent: ' + totalShielded + '; total filtered: ' + value + '; change: ' + change, notes)
 
     const gasPrice = yield getGasPrice()
     const totalGas = gasPrice.mul(config.unshieldGas).mul(new BN(notes.length + (change.gt(0) ? 1 : 0)))
-    debug('unshield: total shield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
+    debug('unshield: total unshield cost is ' + web3.utils.fromWei(totalGas, 'ether'))
 
     if (glyBalance.lt(totalGas)) throw new WalletError('Insufficient GLY funds for gas + price', 'NOT_ENOUGH_T_BALANCE')
 
@@ -143,8 +144,10 @@ export const unshield = (account, glyBalance, amount, tracker, tokenContract) =>
     // Shield back change
     if (! change.isZero()) {
       debug('unshield: shielding change ' + change.toString())
-      yield shieldNote(tracker, change, account.address, tokenContract)
+      addedNotes.push(yield shieldNote(tracker, change, account.address, tokenContract))
     }
+
+    return {removedNotes: notes, addedNotes}
   })
 }
 

@@ -146,11 +146,14 @@ export const unshieldNote = (note, tracker, address, tokenContract) => {
     const root = yield tokenContract.methods.root().call()
     // console.log({cm, witnesses, root})
     const unsh = yield web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value.toNumber(), treeIndex, authPath)
-    debug('unshieldNote: generating finished')
+    debug('unshieldNote: generating proof finished')
+
+    debug('unshieldNote:', {proof: unsh.proof, send_nf: unsh.send_nf, cm, root, value: note.value.toNumber()})
 
     return yield new Promise((resolve, reject) => {
       tokenContract.methods.unshield(unsh.proof, unsh.send_nf, cm, root, note.value.toNumber())
         .send({from: address, gas: config.unshieldGas.toNumber()}, (err, hash) => {
+          debug('unshieldNote: unshielding finished')
           if (err) reject(err)
           resolve(hash)
         })

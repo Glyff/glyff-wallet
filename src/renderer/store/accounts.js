@@ -89,7 +89,7 @@ const actions = {
     return co(function* () {
       commit('START_LOADING')
       commit('UNLOCK_ACCOUNT')
-      yield web3.eth.personal.unlockAccount(account.address, password)
+      yield web3.eth.personal.unlockAccount(account.address, password, 9999)
       commit('UNLOCK_ACCOUNT_OK', account)
     }).catch(e => {
       commit('UNLOCK_ACCOUNT_FAIL', e)
