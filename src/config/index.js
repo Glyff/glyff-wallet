@@ -19,7 +19,7 @@ export default {
     abi: require('./token_abi'),
   },
 
-  unshieldGas: new BN(200000),
+  unshieldGas: new BN(125000),
 
   /** {Number} The number of max unspent notes outputs that can be unshielded for a transaction */
   maxUnshieldings: 6,
