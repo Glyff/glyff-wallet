@@ -4,6 +4,10 @@ module.exports = {
     'js',
     'json',
     'vue',
+    'ts',
+    'tsx',
+    'jsx',
+    'node',
   ],
   transform: {
     '\\.js$': 'babel-jest',

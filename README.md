@@ -6,7 +6,7 @@
 
 #### Build Setup
 
-``` bash
+```bash
 # install dependencies
 yarn
 
@@ -23,3 +23,14 @@ yarn lint
 
 ---
 
+### Testing
+
+To run all tests
+```bash
+yarn test
+```
+
+To run some specific test
+```bash
+yarn test 'should shield successfully'
+```

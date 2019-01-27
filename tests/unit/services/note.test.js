@@ -1,26 +1,26 @@
-import BigNumber from 'bignumber.js'
+import BN from 'bn.js'
 import * as note from '../../../src/services/note'
 import NoteError from '../../../src/errors/note-error'
 
 describe('note.js service', () => {
 
-  describe('searchUTXO',() => {
+  describe('searchUTXO', () => {
 
     it('should find exact match', () => {
       const notes = [
         {
           account: '1',
-          value: new BigNumber(0.1)
+          value: new BN(1)
         },
         {
           account: '2',
-          value: new BigNumber(0.2)
+          value: new BN(2)
         }
       ]
 
-      expect(note.searchUTXO(notes, new BigNumber(0.2))).toEqual({
+      expect(note.searchUTXO(notes, new BN(2))).toEqual({
         notes: [notes[1]],
-        value: new BigNumber(0.2),
+        value: new BN(2),
       })
     })
 
@@ -28,35 +28,35 @@ describe('note.js service', () => {
       const notes = [
         {
           account: '1',
-          value: new BigNumber(0.4)
+          value: new BN(4)
         },
         {
           account: '2',
-          value: new BigNumber(0.3)
+          value: new BN(3)
         }
       ]
 
-      expect(note.searchUTXO(notes, new BigNumber(0.2))).toEqual({
+      expect(note.searchUTXO(notes, new BN(2))).toEqual({
         notes: [notes[1]],
-        value: new BigNumber(0.3),
+        value: new BN(3),
       })
     })
 
-    it('should find bigger match', () => {
+    it('should find notes sum match', () => {
       const notes = [
         {
           account: '1',
-          value: new BigNumber(0.3)
+          value: new BN(3)
         },
         {
           account: '2',
-          value: new BigNumber(0.4)
+          value: new BN(4)
         }
       ]
 
-      expect(note.searchUTXO(notes, new BigNumber(0.6))).toEqual({
+      expect(note.searchUTXO(notes, new BN(7))).toEqual({
         notes: notes,
-        value: new BigNumber(0.7),
+        value: new BN(7),
       })
     })
 
@@ -64,15 +64,15 @@ describe('note.js service', () => {
       const notes = [
         {
           account: '1',
-          value: new BigNumber(0.3)
+          value: new BN(3)
         },
         {
           account: '2',
-          value: new BigNumber(0.4)
+          value: new BN(4)
         }
       ]
 
-      expect(() => note.searchUTXO(notes, new BigNumber(0.9))).toThrow(NoteError)
+      expect(() => note.searchUTXO(notes, new BN(9))).toThrow(NoteError)
     })
 
   })
