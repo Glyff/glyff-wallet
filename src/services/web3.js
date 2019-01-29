@@ -3,7 +3,7 @@ import BN from 'bn.js'
 import co from 'co'
 import config from '../config'
 
-const debug = require('debug')('web3')
+const debug = require('debug')('app:web3')
 const web3 = new Web3()
 
 /**

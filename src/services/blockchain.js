@@ -5,7 +5,7 @@ import web3 from './web3'
 import range from 'lodash-es/range'
 import chunk from 'lodash-es/chunk'
 
-const debug = require('debug')('blockchain')
+const debug = require('debug')('app:blockchain')
 
 /**
  * Watch new blocks

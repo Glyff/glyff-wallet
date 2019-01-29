@@ -5,7 +5,7 @@ import config from '../config'
 import NoteError from '../errors/note-error'
 import BalanceError from '../errors/balance-error'
 
-const debug = require('debug')('note')
+const debug = require('debug')('app:note')
 
 /**
  * Create note

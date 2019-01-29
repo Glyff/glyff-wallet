@@ -25,6 +25,11 @@ yarn lint
 
 ### Testing
 
+To run tests first make sure that: 
+ - Correct contract address is added to `src/config/index.js`
+ - Correct node host and port added to `src/config/index.js`
+ - Correct glyff address with password added here `tests/config.js`
+
 To run all tests
 ```bash
 yarn test
@@ -32,5 +37,5 @@ yarn test
 
 To run some specific test
 ```bash
-yarn test 'should shield successfully'
+yarn test 'should unshield'
 ```

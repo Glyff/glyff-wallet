@@ -17,7 +17,7 @@
     "pack:main": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.main.config.js",
     "pack:renderer": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.renderer.config.js",
     "postinstall": "npm run lint:fix",
-    "test": "jest --testNamePattern"
+    "test": "DEBUG=app:*,test jest --runInBand --testNamePattern"
   },
   "build": {
     "productName": "glyff-wallet",

@@ -1,8 +1,7 @@
 import BN from 'bn.js'
-import * as note from '../../../src/services/note'
-import NoteError from '../../../src/errors/note-error'
+import * as note from '../../src/services/note'
 
-describe('note.js service', () => {
+describe('note.js', () => {
 
   describe('searchUTXO', () => {
 
@@ -72,7 +71,7 @@ describe('note.js service', () => {
         }
       ]
 
-      expect(() => note.searchUTXO(notes, new BN(9))).toThrow(NoteError)
+      expect(() => note.searchUTXO(notes, new BN(9))).toThrow('Could not find enough unspent notes')
     })
 
   })

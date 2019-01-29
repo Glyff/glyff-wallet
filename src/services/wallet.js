@@ -6,7 +6,7 @@ import config from '../config'
 import {mergeNotes, searchUTXO, sendNote, shieldNote, unshieldNote} from './note'
 import WalletError from '../errors/wallet-error'
 
-const debug = require('debug')('wallet')
+const debug = require('debug')('app:wallet')
 
 /**
  * Make new address
