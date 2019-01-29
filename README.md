@@ -29,6 +29,7 @@ To run tests first make sure that:
  - Correct contract address is added to `src/config/index.js`
  - Correct node host and port added to `src/config/index.js`
  - Correct glyff address with password added here `tests/config.js`
+ - Make sure local test node is mining and is used only for current wallet
 
 To run all tests
 ```bash
