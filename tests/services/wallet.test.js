@@ -66,6 +66,7 @@ describe('wallet.js', () => {
 
         debug('Yielded shield note', note)
 
+        debug('Waiting for comfirmation')
         tokenContract.events.LogShielding((err, event) => {
           debug('Recieved LogShielding event')
           expect(err).toBeFalsy()
@@ -89,6 +90,7 @@ describe('wallet.js', () => {
 
         debug('Yielded unshield notes', notes)
 
+        debug('Waiting for comfirmation')
         tokenContract.events.LogUnshielding((err, event) => {
           debug('Recieved LogUnshielding event')
           debug({err, event})
