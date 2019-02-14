@@ -10,6 +10,9 @@
 # install dependencies
 yarn
 
+# build dependencies for appropriate electron node version
+yarn electron-rebuild
+
 # serve with hot reload at localhost:9080
 yarn dev
 

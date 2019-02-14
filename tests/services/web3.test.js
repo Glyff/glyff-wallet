@@ -78,14 +78,12 @@ describe('web3.js', () => {
         debug('Shielded note', note)
 
         debug('Waiting for comfirmation')
-        tokenContract.events.LogShielding((err, event) => {
-          debug('Recieved LogShielding event')
+        tokenContract.events.LogShielding({}, (err, event) => {
+          debug('Recieved LogShielding event', event.returnValues)
           expect(err).toBeFalsy()
           expect(event.returnValues.from).toBe(account.address)
-          expect(event.returnValues['2']).toBe(note.uuid)
+          expect(event.returnValues.uuid).toBe(note.uuid)
           note.confirmed = true
-          tracker.notes.push(note)
-          tracker.balance = note.value
           done()
         })
 
@@ -108,7 +106,7 @@ describe('web3.js', () => {
         debug('UnshieldNote:', {proof: unsh.proof, send_nf: unsh.send_nf, cm, rt: root, value: note.value.toNumber(), from: account.address, gas: appConfig.unshieldGas.toNumber()})
 
         yield new Promise((resolve, reject) => {
-          tokenContract.methods.unshield(unsh.proof, unsh.send_nf, cm, root, note.value.toNumber())
+          tokenContract.methods.unshield(unsh.proof, unsh.send_nf, cm, root, note.value)
             .send({from: account.address, gas: appConfig.unshieldGas.toNumber()}, (err, hash) => {
               debug('Unshielding transaction sent', {err, hash})
               if (err) reject(err)
@@ -117,7 +115,7 @@ describe('web3.js', () => {
         })
 
         debug('Waiting for comfirmation')
-        tokenContract.events.LogUnshielding((err, event) => {
+        tokenContract.events.LogUnshielding({}, (err, event) => {
           debug('Recieved LogUnshielding event')
           debug({err, event})
 

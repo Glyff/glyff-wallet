@@ -198,7 +198,7 @@ const mutations = {
   },
 
   SET_TOKEN_CONTRACT (state) {
-    state.tokenContract = new web3.eth.Contract(state.oToken.abi, state.oToken.address)
+    state.tokenContract = Object.freeze(new web3.eth.Contract(Object.assign([], state.oToken.abi), state.oToken.address))
   },
 
   SHOW_UNLOCK (state) {

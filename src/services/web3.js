@@ -4,7 +4,7 @@ import co from 'co'
 import config from '../config'
 
 const debug = require('debug')('app:web3')
-const web3 = new Web3()
+const web3 = new Web3(new Web3.providers.WebsocketProvider('ws://' + config.node.host + ':' + config.node.port))
 
 /**
  * Connect to the node
@@ -13,22 +13,15 @@ const web3 = new Web3()
  */
 export const connect = () => {
   return new Promise((resolve, reject) => {
-    // if (web3.isConnected()) resolve()
-
-    const provider = new web3.providers.WebsocketProvider('ws://' + config.node.host + ':' + config.node.port)
-    // const provider = new web3.providers.HttpProvider('http://' + config.node.host + ':' + config.node.port)
-    web3.setProvider(provider)
-
-    // Workaround to check if is connected asyncronously
-    web3.currentProvider.send({id: 9999999999, jsonrpc: '2.0', method: 'net_listening', params: []}, (err, result) => {
-      if (err) {
+    web3.eth.net.isListening()
+      .then(() => {
+        debug('Web3  connected!')
+        resolve()
+      })
+      .catch(e => {
         debug('Web3 connection error')
-        return reject(err)
-      }
-
-      debug('Web3  connected!')
-      resolve(result)
-    })
+        reject(e)
+      })
   })
 }
 
