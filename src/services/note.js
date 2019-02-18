@@ -108,7 +108,7 @@ export const shieldNote = (tracker, value, address, tokenContract) => {
     debug('shieldNote: generating finished')
 
     const txHash = yield new Promise((resolve, reject) => {
-      tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value)
+      tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value.toNumber())
         .send({from: address, gas: 200000}, (err, hash) => {
           if (err) reject(err)
           resolve(hash)
@@ -149,10 +149,10 @@ export const unshieldNote = (note, tracker, address, tokenContract) => {
     const unsh = yield web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value.toNumber(), treeIndex, authPath)
     debug('unshieldNote: generating proof finished')
 
-    debug('unshieldNote:', {proof: unsh.proof, send_nf: unsh.send_nf, cm, rt: root, value: note.value.toNumber(), from: address, gas: config.unshieldGas.toNumber()})
+    debug('unshieldNote:', {proof: unsh.proof, spend_nf: unsh.spend_nf, cm, rt: root, value: note.value.toNumber(), from: address, gas: config.unshieldGas.toNumber()})
 
     return yield new Promise((resolve, reject) => {
-      tokenContract.methods.unshield(unsh.proof, unsh.send_nf, cm, root, note.value.toNumber())
+      tokenContract.methods.unshield(unsh.proof, unsh.spend_nf, cm, root, note.value.toNumber())
         .send({from: address, gas: config.unshieldGas.toNumber()}, (err, hash) => {
           debug('unshieldNote: unshielding finished', {err, hash})
           if (err) reject(err)

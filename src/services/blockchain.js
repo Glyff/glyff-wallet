@@ -286,10 +286,7 @@ export const checkPastEvents = (bus, trackers, accounts, transactions, tokenCont
     debug(`checkPastEvents: retrieving past events from block ${lastBlock} to the latest`)
     // TODO use {filter: {from: [12,13]}} to filter by needed account addresses as they are indexed
     // TODO split by event types into different methods
-    const events = yield tokenContract.getPastEvents('LogTransfer', {fromBlock: lastBlock, toBlock: 'latest'})
-    events.concat(yield tokenContract.getPastEvents('LogShielding', {fromBlock: lastBlock, toBlock: 'latest'}))
-    events.concat(yield tokenContract.getPastEvents('LogUnshielding', {fromBlock: lastBlock, toBlock: 'latest'}))
-    events.concat(yield tokenContract.getPastEvents('LogShieldedTransfer', {fromBlock: lastBlock, toBlock: 'latest'}))
+    const events = yield tokenContract.getPastEvents('allEvents', {fromBlock: 0 /* lastBlock */, toBlock: 'latest'})
     debug(`checkPastEvents: found ${events.length} past events`)
 
     events.forEach(event => {
