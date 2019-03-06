@@ -3,6 +3,7 @@ import co from 'co'
 import {shield, unshield} from '../../services/wallet'
 import moment from 'moment/moment'
 import {findNoteAndTracker} from '../../services/note'
+import isArray from 'lodash-es/isArray'
 
 /*
  * State
@@ -131,7 +132,7 @@ const mutations = {
 
   CREATE_TRACKER () {},
   CREATE_TRACKER_OK (state, {account, tracker}) {
-    if (! state.trackers[account.address]) state.trackers[account.address] = []
+    if (! isArray(state.trackers[account.address])) state.trackers[account.address] = []
 
     state.trackers[account.address].push(tracker)
   },

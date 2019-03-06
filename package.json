@@ -77,7 +77,7 @@
     "vue-router": "^2.5.3",
     "vue-spinner": "^1.0.3",
     "vuex": "^2.3.1",
-    "web3-zsl": "^0.1.2"
+    "web3-zsl": "^0.1.5"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

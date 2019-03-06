@@ -138,6 +138,7 @@ export const shieldNote = (tracker, value, address, tokenContract) => {
  */
 export const unshieldNote = (note, tracker, address, tokenContract) => {
   return co(function* () {
+    debug('unshieldNote', {note, tracker, address, tokenContract})
     debug('unshieldNote: generating proof for unshielding')
     const cm = yield web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value.toNumber())
     const witnesses = yield tokenContract.methods.getWitness(cm).call()

@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import {mapGetters, mapActions, mapMutations} from 'vuex'
+import {mapState, mapGetters, mapActions, mapMutations} from 'vuex'
 import {Modal} from 'uiv'
 import pick from 'lodash-es/pick'
 import Validator from 'validatorjs'
@@ -65,6 +65,10 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      stateTrackers: s => s.trackers.trackers,
+    }),
+
     ...mapGetters({
       trackers: 'currentTrackers',
       glxBalance: 'glxBalance',

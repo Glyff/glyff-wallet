@@ -306,7 +306,7 @@ export const checkPastEvents = (bus, trackers, accounts, transactions, tokenCont
  * @param tokenContract
  */
 export const watchEvents = (bus, trackers, accounts, transactions, tokenContract) => {
-  tokenContract.events.allEvents((err, event) => {
+  tokenContract.events.allEvents({}, (err, event) => {
     if (err) return console.error(err)
     debug('watchEvents: new event ' + event.event, event)
     processEvent(event, bus, trackers, accounts, transactions)

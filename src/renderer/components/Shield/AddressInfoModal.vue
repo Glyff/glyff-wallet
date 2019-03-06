@@ -18,12 +18,12 @@
     <table class="table table-hover table-fixed">
       <tbody>
       <tr>
-        <th style="width: 50%">Transaction Hash</th>
+        <th style="width: 50%">Transaction Hash<br>UUID</th>
         <th style="width: 40%">Contract Address</th>
         <th style="width: 10%">Value</th>
       </tr>
       <tr v-for="note in confirmedNotes">
-        <td class="break-word">{{ note.txHash }}</td>
+        <td class="break-word">{{ note.txHash }}<br>{{ note.uuid }}</td>
         <td>{{ note.contract }}</td>
         <td>{{ note.value | ether('GLX', 'GLX') }}</td>
       </tr>

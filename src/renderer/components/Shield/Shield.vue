@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import {mapGetters, mapActions} from 'vuex'
+import {mapState, mapGetters, mapActions} from 'vuex'
 import Balances from '../Layout/Balances'
 import AddressInfoModal from './AddressInfoModal'
 import ShieldModal from './ShieldModal'
@@ -68,6 +68,10 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      stateTrackers: s => s.trackers.trackers,
+    }),
+
     ...mapGetters({
       trackers: 'currentTrackers',
       account: 'currentAccount',
@@ -85,7 +89,7 @@ export default {
     },
 
     newAddress () {
-      this.createTracker(this.account).then(() => this.$forceUpdate())
+      this.createTracker(this.account)
     },
   },
 }
