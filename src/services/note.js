@@ -31,12 +31,13 @@ export const createNote = (tracker, rho, value, address, tokenContract) => {
 }
 
 /**
- * Find note and trackers in trackers list by hash
+ * Find note and trackers in trackers list by uuid
  *
  * @param trackers
  * @param uuid
+ * @param confirmed
  */
-export const findNoteAndTracker = (trackers, uuid) => {
+export const findNoteAndTracker = (trackers, uuid, confirmed = false) => {
   let note
   let tracker
   let address
@@ -46,17 +47,16 @@ export const findNoteAndTracker = (trackers, uuid) => {
     // Search all trackers in account
     return trackers[addr].find(accTracker => {
       let n = accTracker.notes.find(note => note.uuid === uuid)
-      if (n) {
+      if (n && n.confirmed === confirmed) {
         note = n
         tracker = accTracker
         address = addr
+
         return true
       }
       return false
     })
   })
-
-  console.log('findNoteAndTracker', {address, tracker, note})
 
   return {address, tracker, note}
 }

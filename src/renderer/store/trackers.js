@@ -2,7 +2,6 @@ import {createTracker} from '../../services/tracker'
 import co from 'co'
 import {shield, unshield} from '../../services/wallet'
 import moment from 'moment/moment'
-import {findNoteAndTracker} from '../../services/note'
 import isArray from 'lodash-es/isArray'
 
 /*
@@ -102,26 +101,16 @@ const actions = {
     })
   },
 
-  newShielding ({commit, dispatch, state}, {block, event}) {
+  newShielding ({commit, dispatch, state}, {block, event, tracker, note}) {
     commit('NEW_SHIELDING', {block, event})
-    const {tracker, note} = findNoteAndTracker(state.trackers, event.returnValues.uuid)
-    if (! note) {
-      commit('NEW_SHIELDING_FAIL', {block, event})
-    } else {
-      commit('NEW_SHIELDING_OK', {block, tracker, note})
-      dispatch('glsTransfer', {block, tracker, note, type: 'shield'})
-    }
+    commit('NEW_SHIELDING_OK', {block, tracker, note})
+    dispatch('glsTransfer', {block, tracker, note, type: 'shield'})
   },
 
-  newUnshielding ({commit, dispatch, state}, {block, event}) {
+  newUnshielding ({commit, dispatch, state}, {block, event, tracker, note}) {
     commit('NEW_UNSHIELDING', {block, event})
-    const {tracker, note} = findNoteAndTracker(state.trackers, event.returnValues.uuid)
-    if (! note) {
-      commit('NEW_UNSHIELDING_FAIL', {block, event})
-    } else {
-      commit('NEW_UNSHIELDING_OK', {block, tracker, note})
-      dispatch('glsTransfer', {block, tracker, note, type: 'unshield'})
-    }
+    commit('NEW_UNSHIELDING_OK', {block, tracker, note})
+    dispatch('glsTransfer', {block, tracker, note, type: 'unshield'})
   },
 }
 
@@ -146,10 +135,12 @@ const mutations = {
 
   UNSHIELD (state) {},
   UNSHIELD_OK (state, {tracker, removedNotes, addedNotes}) {
-    tracker.notes = tracker.notes.filter(note => {
-      return ! removedNotes.find(rm => rm.uuid === note.uuid)
-    })
-    tracker.notes.push(addedNotes)
+    if (removedNotes.length) {
+      tracker.notes.forEach(note => {
+        if (removedNotes.find(rm => rm.uuid === note.uuid)) note.confirmed = false
+      })
+    }
+    if (addedNotes.length) tracker.notes.concat(addedNotes)
   },
   UNSHIELD_FAIL (state, error) {},
 
@@ -165,6 +156,7 @@ const mutations = {
   NEW_UNSHIELDING_FAIL (state, event) {},
   NEW_UNSHIELDING_OK (state, {block, tracker, note}) {
     tracker.notes.splice(tracker.notes.findIndex(n => n.uuid === note.uuid), 1)
+    tracker.spent.push(note)
     tracker.balance = tracker.balance.sub(note.value)
   },
 }

@@ -9,16 +9,16 @@ bus.on('glx-transfer', (tx) => {
   store.dispatch('glxTransfer', tx)
 })
 
-bus.on('shielding', ({block, event}) => {
-  store.dispatch('newShielding', {block, event})
+bus.on('shielding', (data) => {
+  store.dispatch('newShielding', data)
 })
 
-bus.on('unshielding', ({block, event}) => {
-  store.dispatch('newUnshielding', {block, event})
+bus.on('unshielding', (data) => {
+  store.dispatch('newUnshielding', data)
 })
 
-bus.on('shielded-transfer', (event) => {
-  console.log('shielded-transfer')
+bus.on('shielded-transfer', (data) => {
+  store.dispatch('newShieldedTransfer', data)
 })
 
 bus.on('synced-blocks-to', (block) => {

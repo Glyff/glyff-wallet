@@ -87,6 +87,10 @@ const loadState = () => {
         note.value = new BN(note.value)
         if (note.date) note.date = moment(note.date)
       })
+      tracker.spent.forEach(note => {
+        note.value = new BN(note.value)
+        if (note.date) note.date = moment(note.date)
+      })
     })
   })
 
@@ -157,6 +161,10 @@ export const saveState = (state) => {
     trackers[addr].forEach(tracker => {
       tracker.balance = tracker.balance.toString()
       tracker.notes.forEach(note => {
+        note.value = note.value.toString()
+        if (note.date) note.date = note.date.format('YYYY-MM-YY hh:mm:ss')
+      })
+      tracker.spent.forEach(note => {
         note.value = note.value.toString()
         if (note.date) note.date = note.date.format('YYYY-MM-YY hh:mm:ss')
       })
