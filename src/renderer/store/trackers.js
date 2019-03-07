@@ -1,6 +1,6 @@
 import {createTracker} from '../../services/tracker'
 import co from 'co'
-import {shield, unshield} from '../../services/wallet'
+import {shield, unshield, sendShielded} from '../../services/wallet'
 import moment from 'moment/moment'
 import isArray from 'lodash-es/isArray'
 
@@ -101,6 +101,21 @@ const actions = {
     })
   },
 
+  sendShielded ({dispatch, commit, rootState, rootGetters}, {tracker, amount, zaddress}) {
+    return co(function* () {
+      commit('START_LOADING')
+      commit('SEND_SHIELDED')
+
+      const note = yield sendShielded(rootGetters.currentAccount, rootGetters.glyBalance, amount, zaddress, tracker, rootState.general.tokenContract)
+      commit('SEND_SHIELDED_OK', {tracker, note})
+    }).catch(err => {
+      commit('SEND_SHIELDED_FAIL', err)
+      throw err
+    }).finally(() => {
+      commit('STOP_LOADING')
+    })
+  },
+
   newShielding ({commit, dispatch, state}, {block, event, tracker, note}) {
     commit('NEW_SHIELDING', {block, event})
     commit('NEW_SHIELDING_OK', {block, tracker, note})
@@ -144,6 +159,12 @@ const mutations = {
   },
   UNSHIELD_FAIL (state, error) {},
 
+  SEND_SHIELDED (state) {},
+  SEND_SHIELDED_OK (state, {tracker, removedNotes, addedNotes}) {
+    // TODO
+  },
+  SEND_SHIELDED_FAIL (state, error) {},
+
   NEW_SHIELDING (state) {},
   NEW_SHIELDING_FAIL (state, event) {},
   NEW_SHIELDING_OK (state, {block, tracker, note}) {
@@ -158,6 +179,12 @@ const mutations = {
     tracker.notes.splice(tracker.notes.findIndex(n => n.uuid === note.uuid), 1)
     tracker.spent.push(note)
     tracker.balance = tracker.balance.sub(note.value)
+  },
+
+  NEW_SHIELDED_TRANSFER (state) {},
+  NEW_SHIELDED_TRANSFER_FAIL (state, event) {},
+  NEW_SHIELDED_TRANSFER_OK (state, {block, tracker, note}) {
+    // TODO
   },
 }
 

@@ -122,23 +122,26 @@ const emptyUncles = ['0x80000000000000000000000000000000000000000000000000000000
  * @param amount
  * @param change
  * @param tokenContract
- * @param recipientApk
+ * @param zaddress
  * @param outRho1
  * @param outRho2
  * @return {Promise<any>}
  */
-export const createShieldedTransfer = (note, tracker, amount, change, tokenContract, recipientApk, outRho1, outRho2) => {
+export const createShieldedTransfer = (note, tracker, amount, change, tokenContract, zaddress, outRho1, outRho2) => {
   return co(function* () {
-    const tmpKeypair = web3.zsl.GenerateZKeypair()
-    const commitment = web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value)
-    const witnesses = tokenContract.getWitness(commitment)
+    const tmpKeypair = yield web3.zsl.generateZKeypair()
+    console.log({tmpKeypair})
+    console.log(note.rho, tracker.a_pk, note.value.toNumber())
+    const cm = yield web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value.toNumber())
+    console.log({cm})
+    const witnesses = yield tokenContract.methods.getWitness(cm).call()
+    console.log({witnesses})
     const treeIndex = parseInt(witnesses[0])
     const authPath = witnesses[1]
 
-    return web3.zsl.createShieldedTransfer(
-      note.rho,
+    debug('createShieldedTransfer', note.rho,
       tracker.a_sk,
-      note.value,
+      note.value.toNumber(),
       treeIndex,
       authPath,
       yield web3.zsl.getRandomness(),
@@ -147,11 +150,29 @@ export const createShieldedTransfer = (note, tracker, amount, change, tokenContr
       0,
       emptyUncles,
       outRho1,
-      recipientApk,
-      amount,
+      zaddress,
+      amount.toNumber(),
       outRho2,
       tracker.a_pk,
-      change)
+      change.toNumber())
+
+    return yield web3.zsl.createShieldedTransfer(
+      note.rho,
+      tracker.a_sk,
+      note.value.toNumber(),
+      treeIndex,
+      authPath,
+      yield web3.zsl.getRandomness(),
+      tmpKeypair.a_sk,
+      0,
+      0,
+      emptyUncles,
+      outRho1,
+      zaddress,
+      amount.toNumber(),
+      outRho2,
+      tracker.a_pk,
+      change.toNumber())
   })
 }
 

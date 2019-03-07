@@ -1,5 +1,4 @@
 import os from 'os'
-import BN from 'bn.js'
 
 export default {
 
@@ -19,7 +18,9 @@ export default {
     abi: require('./token_abi'),
   },
 
-  unshieldGas: new BN(125000),
+  shieldGas: 200000,
+  unshieldGas: 125000,
+  shieldedTransferGas: 5470000,
 
   /** {Number} The number of max unspent notes outputs that can be unshielded for a transaction */
   maxUnshieldings: 6,

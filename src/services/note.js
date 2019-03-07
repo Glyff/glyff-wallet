@@ -70,19 +70,18 @@ export const findNoteAndTracker = (trackers, uuid, confirmed = false) => {
  * @param tokenContract
  */
 export const mergeNotes = (tracker, amount, account, tokenContract) => {
-  const notes = tracker.notes.find(n => n.account === account.address) // Filter account notes
-  const {unspent, value} = searchUTXO(notes, amount)
-
-  const change = value.sub(amount)
-  debug('Total filtered : ' + value + ' + change : ' + change)
-
-  if (unspent.length > config.maxUnshieldings) { throw new NoteError('Maximum unshieldings has been reached', 'MAX_UNSHIELDINGS') }
-
-  debug('Unspend notes: ' + JSON.stringify(unspent))
-
   return co(function* () {
+    const {notes, value} = searchUTXO(tracker.notes, amount)
+    const change = value.sub(amount)
+    debug('mergeNotes: total filtered : ' + value + ' + change : ' + change, notes)
+
+    if (notes.length > config.maxUnshieldings) throw new NoteError('Maximum unshieldings has been reached', 'MAX_UNSHIELDINGS')
+
+    // If we have exact one note match, just return it
+    if (notes.length === 1) return notes[0]
+
     // Simultaneously unshield all notes (async)
-    yield unspent.map(note => {
+    yield notes.map(note => {
       return unshieldNote(note, tracker, account.address, tokenContract)
     })
 
@@ -109,7 +108,7 @@ export const shieldNote = (tracker, value, address, tokenContract) => {
 
     const txHash = yield new Promise((resolve, reject) => {
       tokenContract.methods.shield(result.proof, result.send_nf, result.cm, value.toNumber())
-        .send({from: address, gas: 200000}, (err, hash) => {
+        .send({from: address, gas: config.shieldGas}, (err, hash) => {
           if (err) reject(err)
           resolve(hash)
         })
@@ -150,11 +149,11 @@ export const unshieldNote = (note, tracker, address, tokenContract) => {
     const unsh = yield web3.zsl.createUnshielding(note.rho, tracker.a_sk, note.value.toNumber(), treeIndex, authPath)
     debug('unshieldNote: generating proof finished')
 
-    debug('unshieldNote:', {proof: unsh.proof, spend_nf: unsh.spend_nf, cm, rt: root, value: note.value.toNumber(), from: address, gas: config.unshieldGas.toNumber()})
+    debug('unshieldNote:', {proof: unsh.proof, spend_nf: unsh.spend_nf, cm, rt: root, value: note.value.toNumber(), from: address, gas: config.unshieldGas})
 
     return yield new Promise((resolve, reject) => {
       tokenContract.methods.unshield(unsh.proof, unsh.spend_nf, cm, root, note.value.toNumber())
-        .send({from: address, gas: config.unshieldGas.toNumber()}, (err, hash) => {
+        .send({from: address, gas: config.unshieldGas}, (err, hash) => {
           debug('unshieldNote: unshielding finished', {err, hash})
           if (err) reject(err)
           resolve(hash)
@@ -257,9 +256,9 @@ export const decryptBlob = (tracker, blob, address, tokenContract) => {
 /**
  * Send shielded note to an address
  */
-export const sendNote = (note, amount, recipientApk, account, tracker, tokenContract) => {
+export const sendNote = (note, amount, zaddress, account, tracker, tokenContract) => {
   return co(function* () {
-    debug('Started sendNote')
+    debug('sendNote started')
     if (note.value.lt(amount)) {
       throw new NoteError('Cannot transfer ' + amount + ' as note value of ' + note.value + ' is too small.', 'NOT_ENOUGH_NOTE_VALUE')
     }
@@ -268,21 +267,20 @@ export const sendNote = (note, amount, recipientApk, account, tracker, tokenCont
     const outRho1 = yield web3.zsl.getRandomness()
     const outRho2 = yield web3.zsl.getRandomness()
 
-    const shTransfer = yield createShieldedTransfer(note, tracker, amount, change, tokenContract, recipientApk, outRho1, outRho2)
-
-    debug('Finishd sendNote' + JSON.stringify(shTransfer))
+    debug('sendNote: createShieldedTransfer started', {note, tracker, amount, change, tokenContract, zaddress, outRho1, outRho2})
+    const shTransfer = yield createShieldedTransfer(note, tracker, amount, change, tokenContract, zaddress, outRho1, outRho2)
+    debug('sendNote: createShieldedTransfer finished', shTransfer)
 
     const n1 = {
       value: amount,
       rho: outRho1,
       uuid: web3.toHex(web3.utils.sha3(shTransfer.out_cm_1, {encoding: 'hex'})),
-      ztoken: tokenContract.address,
+      contract: tokenContract.address,
       confirmed: false,
       address: null,
-      tracker: null,
     }
 
-    debug('Recipient receives note of ' + amount + ' ' + tokenContract.name())
+    debug('sendNote: Recipient receives note of ' + amount + ' ' + tokenContract.name())
 
     let n2 = {}
     if (change.gt(0)) {
@@ -290,39 +288,45 @@ export const sendNote = (note, amount, recipientApk, account, tracker, tokenCont
         value: change,
         rho: outRho2,
         uuid: web3.toHex(web3.utils.sha3(shTransfer.out_cm_2, {encoding: 'hex'})),
-        ztoken: tokenContract.address,
+        contract: tokenContract.address,
         confirmed: false,
         address: account.address(),
-        tracker: tracker.uuid,
       }
     }
 
-    debug('Sender receives change of ' + change + ' ' + tokenContract.name())
-    debug('Submit shielded transfer to z-contract...')
+    debug('sendNote: Sender receives change of ' + change + ' ' + tokenContract.name())
+    debug('sendNote: Submit shielded transfer to z-contract...')
 
-    yield tokenContract.shieldedTransfer(
-      shTransfer.proof,
-      tokenContract.root(),
-      shTransfer.in_spend_nf_1,
-      shTransfer.in_spend_nf_2,
-      shTransfer.out_send_nf_1,
-      shTransfer.out_send_nf_2,
-      shTransfer.out_cm_1,
-      shTransfer.out_cm_2,
-      shTransfer.blob, {
-        from: account.address,
-        gas: 5470000
-      })
+    const hash = yield new Promise((resolve, reject) => {
+      tokenContract.methods.shieldedTransfer(
+        shTransfer.proof,
+        tokenContract.root(),
+        shTransfer.in_spend_nf_1,
+        shTransfer.in_spend_nf_2,
+        shTransfer.out_send_nf_1,
+        shTransfer.out_send_nf_2,
+        shTransfer.out_cm_1,
+        shTransfer.out_cm_2,
+        shTransfer.blob,
+      )
+        .send({from: account.address, gas: config.shieldedTransferGas}, (err, hash) => {
+          debug('sendNote: transfer finished', {err, hash})
+          if (err) reject(err)
+          resolve(hash)
+        })
+    })
+
+    console.log({hash})
 
     const shlddTx = {
       n: note,
       n1: n1,
       n2: n2,
-      to: recipientApk,
+      to: zaddress,
     }
 
     debug('Completed shielded transfer', shlddTx)
 
-    return {transfer: shTransfer, tx: shlddTx}
+    return shlddTx
   })
 }
