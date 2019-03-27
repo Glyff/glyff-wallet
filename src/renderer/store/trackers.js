@@ -3,6 +3,7 @@ import co from 'co'
 import {shield, unshield, sendShielded} from '../../services/wallet'
 import moment from 'moment/moment'
 import isArray from 'lodash-es/isArray'
+import truncate from 'lodash-es/truncate'
 
 /*
  * State
@@ -10,6 +11,9 @@ import isArray from 'lodash-es/isArray'
 const state = {
 
   trackers: {},
+
+  // Pending sent notes temporary data (TODO)
+  sentNotes: [],
 
 }
 
@@ -117,15 +121,35 @@ const actions = {
   },
 
   newShielding ({commit, dispatch, state}, {block, event, tracker, note}) {
-    commit('NEW_SHIELDING', {block, event})
+    // commit('NEW_SHIELDING', {block, event})
     commit('NEW_SHIELDING_OK', {block, tracker, note})
     dispatch('glsTransfer', {block, tracker, note, type: 'shield'})
+
+    dispatch('addToastMessage', {
+      text: 'Shielding of ' + note.value.toString() + ' ATU for address ' + truncate(tracker.zaddr, {length: 10}) + ' was confirmed',
+      type: 'success',
+    })
   },
 
   newUnshielding ({commit, dispatch, state}, {block, event, tracker, note}) {
-    commit('NEW_UNSHIELDING', {block, event})
+    // commit('NEW_UNSHIELDING', {block, event})
     commit('NEW_UNSHIELDING_OK', {block, tracker, note})
     dispatch('glsTransfer', {block, tracker, note, type: 'unshield'})
+
+    dispatch('addToastMessage', {
+      text: 'Unshielding of ' + note.value.toString() + ' ATU for address ' + truncate(tracker.zaddr, {length: 10}) + ' was confirmed',
+      type: 'success',
+    })
+  },
+
+  newShieldedTransfer ({commit, dispatch, state}, {block, event, tracker, note}) {
+    commit('NEW_SHIELDED_TRANSFER_OK', {block, tracker, note})
+    dispatch('glsTransfer', {block, tracker, note, type: 'transfer'})
+
+    dispatch('addToastMessage', {
+      text: 'Shielded transfer of ' + note.value.toString() + ' ATU for address ' + truncate(tracker.zaddr, {length: 10}) + ' was confirmed',
+      type: 'success',
+    })
   },
 }
 
@@ -184,7 +208,8 @@ const mutations = {
   NEW_SHIELDED_TRANSFER (state) {},
   NEW_SHIELDED_TRANSFER_FAIL (state, event) {},
   NEW_SHIELDED_TRANSFER_OK (state, {block, tracker, note}) {
-    // TODO
+    tracker.notes.push(note)
+    tracker.balance = tracker.balance.add(note.value)
   },
 }
 

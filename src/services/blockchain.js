@@ -4,7 +4,8 @@ import BN from 'bn.js'
 import web3 from './web3'
 import range from 'lodash-es/range'
 import chunk from 'lodash-es/chunk'
-import {findNoteAndTracker} from './note'
+import {decryptBlob, findNoteAndTracker} from './note'
+import flatMap from 'lodash-es/flatMap'
 
 const debug = require('debug')('app:blockchain')
 
@@ -226,8 +227,9 @@ export const syncChain = (bus, accounts, transactions, startBlock) => {
  * @param trackers
  * @param accounts
  * @param transactions
+ * @param tokenContract
  */
-export const processEvent = (event, bus, trackers, accounts, transactions) => {
+export const processEvent = (event, bus, trackers, accounts, transactions, tokenContract) => {
   return co(function* () {
     debug('processEvent', event)
 
@@ -248,33 +250,45 @@ export const processEvent = (event, bus, trackers, accounts, transactions) => {
     const block = yield web3.eth.getBlock(event.blockNumber)
     let tracker, note
 
-    if (['LogShielding', 'LogUnshielding', 'LogShieldedTransfer'].includes(event.event)) {
-      ({tracker, note} = findNoteAndTracker(trackers, event.returnValues.uuid))
-      debug('processEvent: unconfirmed note', note)
-      // Check if we have this unconfirmed note
-      if (! note) return debug('processEvent: unconfirmed note was not found: ' + event.returnValues.uuid)
-    }
-
     switch (event.event) {
       case 'LogTransfer':
         // Check if transactions already exist
         if (fromAccount && transactions[fromAccount.address].find(tx => tx.hash === event.transactionHash)) return
         if (toAccount && transactions[toAccount.address].find(tx => tx.hash === event.transactionHash)) return
+        if (! fromAccount && ! toAccount) return
         debug('processEvent: found new LogTransfer', {event})
 
         return bus.emit('glx-transfer', Object.assign({}, event, {timestamp: block.timestamp}))
-      case 'LogShielding':
-        debug('processEvent: new LogShielding', {event})
-        return bus.emit('shielding', {block, event, tracker, note})
-      case 'LogUnshielding':
-        debug('processEvent: new LogUnshielding', {event})
-        return bus.emit('unshielding', {block, event, tracker, note})
-      case 'LogShieldedTransfer':
-        debug('processEvent: new LogShieldedTransfer', {block, event, tracker, note})
-      // TODO find needed tracker?
-      // const note = decryptBlob(tracker, event.returnValues.blob, event.returnValues.from.toString(), tokenContract)
 
-      // return bus.emit('shielded-transfer', note)
+      case 'LogShielding':
+        debug('processEvent: new LogShielding', {event});
+        ({tracker, note} = findNoteAndTracker(trackers, event.returnValues.uuid))
+        if (! note) return debug('processEvent: unconfirmed note was not found: ' + event.returnValues.uuid)
+        debug('processEvent: unconfirmed note', note)
+
+        return bus.emit('shielding', {block, event, tracker, note})
+
+      case 'LogUnshielding':
+        debug('processEvent: new LogUnshielding', {event});
+        ({tracker, note} = findNoteAndTracker(trackers, event.returnValues.uuid))
+        if (! note) return debug('processEvent: unconfirmed note was not found: ' + event.returnValues.uuid)
+        debug('processEvent: unconfirmed note', note)
+
+        return bus.emit('unshielding', {block, event, tracker, note})
+
+      case 'LogShieldedTransfer':
+        debug('processEvent: new LogShieldedTransfer', {event})
+        const decrypted = yield flatMap(trackers).map(tracker => {
+          return decryptBlob(tracker, event, tokenContract)
+        })
+        const found = decrypted.find(n => n !== null)
+        if (! found) return debug('processEvent: could not decrypt note against any of the trackers')
+        debug('processEvent: found note', found)
+        if (flatMap(trackers).map(t => t.notes).flat(1).find(n => n.uuid === found.note.uuid)) {
+          return debug('processEvent: note was already added to tracker')
+        }
+
+        return bus.emit('shielded-transfer', {block, event, tracker: found.tracker, note: found.note})
     }
   })
 }
@@ -300,7 +314,7 @@ export const checkPastEvents = (bus, trackers, accounts, transactions, tokenCont
 
     events.forEach(event => {
       debug('checkPastEvents: recieved event')
-      processEvent(event, bus, trackers, accounts, transactions)
+      processEvent(event, bus, trackers, accounts, transactions, tokenContract)
     })
   })
 }
@@ -318,6 +332,6 @@ export const watchEvents = (bus, trackers, accounts, transactions, tokenContract
   tokenContract.events.allEvents({}, (err, event) => {
     if (err) return console.error(err)
     debug('watchEvents: new event')
-    processEvent(event, bus, trackers, accounts, transactions)
+    processEvent(event, bus, trackers, accounts, transactions, tokenContract)
   })
 }

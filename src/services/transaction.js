@@ -51,7 +51,7 @@ export const createGlsTransaction = (block, tracker, note, type) => {
     type: 'GLS',
     hash: note.txHash,
     blockNumber: block.number,
-    from: type === 'shield' ? note.address : null,
+    from: type === 'shield' || type === 'transfer' ? note.address : null,
     to: type === 'unshiled' ? note.address : null,
     value: new BN(note.value),
     date: note.timestamp ? moment.unix(note.timestamp) : moment(),

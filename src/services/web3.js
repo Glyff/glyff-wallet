@@ -130,31 +130,27 @@ const emptyUncles = ['0x80000000000000000000000000000000000000000000000000000000
 export const createShieldedTransfer = (note, tracker, amount, change, tokenContract, zaddress, outRho1, outRho2) => {
   return co(function* () {
     const tmpKeypair = yield web3.zsl.generateZKeypair()
-    console.log({tmpKeypair})
-    console.log(note.rho, tracker.a_pk, note.value.toNumber())
     const cm = yield web3.zsl.getCommitment(note.rho, tracker.a_pk, note.value.toNumber())
-    console.log({cm})
     const witnesses = yield tokenContract.methods.getWitness(cm).call()
-    console.log({witnesses})
     const treeIndex = parseInt(witnesses[0])
     const authPath = witnesses[1]
 
-    debug('createShieldedTransfer', note.rho,
-      tracker.a_sk,
-      note.value.toNumber(),
-      treeIndex,
-      authPath,
-      yield web3.zsl.getRandomness(),
-      tmpKeypair.a_sk,
-      0,
-      0,
-      emptyUncles,
-      outRho1,
-      zaddress,
-      amount.toNumber(),
-      outRho2,
-      tracker.a_pk,
-      change.toNumber())
+    // debug('createShieldedTransfer', note.rho,
+    //   tracker.a_sk,
+    //   note.value.toNumber(),
+    //   treeIndex,
+    //   authPath,
+    //   yield web3.zsl.getRandomness(),
+    //   tmpKeypair.a_sk,
+    //   0,
+    //   0,
+    //   emptyUncles,
+    //   outRho1,
+    //   zaddress,
+    //   amount.toNumber(),
+    //   outRho2,
+    //   tracker.a_pk,
+    //   change.toNumber())
 
     return yield web3.zsl.createShieldedTransfer(
       note.rho,

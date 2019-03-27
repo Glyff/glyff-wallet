@@ -8,29 +8,6 @@ import BalanceError from '../errors/balance-error'
 const debug = require('debug')('app:note')
 
 /**
- * Create note
- *
- * @param tracker
- * @param rho
- * @param {BN} value
- * @param address
- * @param tokenContract
- */
-export const createNote = (tracker, rho, value, address, tokenContract) => {
-  const pk = tracker.a_pk
-  const cm = web3.zsl.getCommitment(rho, pk, value.toNumber())
-
-  return {
-    rho,
-    value,
-    uuid: web3.toHex(web3.utils.sha3(cm, {encoding: 'hex'})),
-    address,
-    confirmed: false,
-    ztoken: tokenContract.address,
-  }
-}
-
-/**
  * Find note and trackers in trackers list by uuid
  *
  * @param trackers
@@ -240,16 +217,33 @@ export const searchUTXO = (notes, amount) => {
  * Decrypt blob
  *
  * @param tracker
- * @param blob
- * @param address
+ * @param event
  * @param tokenContract
  * @return {*}
  */
-export const decryptBlob = (tracker, blob, address, tokenContract) => {
+export const decryptBlob = (tracker, event, tokenContract) => {
   return co(function* () {
-    const decrypted = yield web3.zsl.noteDecrypt(tracker.a_sk, blob)
+    const decrypted = yield web3.zsl.noteDecrypt(tracker.a_sk, event.blob)
+    debug('decryptBlob: decrypted', {decrypted})
 
-    return createNote(tracker, decrypted.out_rho_1, new BN(decrypted.value), address, tokenContract)
+    const rho = '0x' + decrypted.out_rho_1
+    const value = new BN(decrypted.value)
+    const cm = yield web3.zsl.getCommitment(rho, tracker.a_pk, value.toNumber())
+
+    const note = {
+      txHash: event.transactionHash,
+      rho,
+      value,
+      uuid: web3.utils.toHex(web3.utils.sha3(cm, {encoding: 'hex'})),
+      address: event.address,
+      confirmed: true,
+      contract: tokenContract.options.address,
+    }
+
+    return {note, tracker}
+  }).catch(err => {
+    debug('decryptBlob: could not decrypt note: ' + err.message)
+    return null
   })
 }
 
@@ -274,33 +268,35 @@ export const sendNote = (note, amount, zaddress, account, tracker, tokenContract
     const n1 = {
       value: amount,
       rho: outRho1,
-      uuid: web3.toHex(web3.utils.sha3(shTransfer.out_cm_1, {encoding: 'hex'})),
-      contract: tokenContract.address,
+      uuid: web3.utils.toHex(web3.utils.sha3(shTransfer.out_cm_1, {encoding: 'hex'})),
+      contract: tokenContract.options.address,
       confirmed: false,
       address: null,
     }
 
-    debug('sendNote: Recipient receives note of ' + amount + ' ' + tokenContract.name())
+    debug('sendNote: Recipient receives note of ' + amount)
 
     let n2 = {}
     if (change.gt(0)) {
       n2 = {
         value: change,
         rho: outRho2,
-        uuid: web3.toHex(web3.utils.sha3(shTransfer.out_cm_2, {encoding: 'hex'})),
-        contract: tokenContract.address,
+        uuid: web3.utils.toHex(web3.utils.sha3(shTransfer.out_cm_2, {encoding: 'hex'})),
+        contract: tokenContract.options.address,
         confirmed: false,
-        address: account.address(),
+        address: account.address,
       }
     }
 
-    debug('sendNote: Sender receives change of ' + change + ' ' + tokenContract.name())
+    debug('sendNote: Sender receives change of ' + change)
     debug('sendNote: Submit shielded transfer to z-contract...')
+
+    const root = yield tokenContract.methods.root().call()
 
     const hash = yield new Promise((resolve, reject) => {
       tokenContract.methods.shieldedTransfer(
         shTransfer.proof,
-        tokenContract.root(),
+        root,
         shTransfer.in_spend_nf_1,
         shTransfer.in_spend_nf_2,
         shTransfer.out_send_nf_1,
@@ -315,8 +311,7 @@ export const sendNote = (note, amount, zaddress, account, tracker, tokenContract
           resolve(hash)
         })
     })
-
-    console.log({hash})
+    debug('sendNote: Transaction hash: ' + hash)
 
     const shlddTx = {
       n: note,
