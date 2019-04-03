@@ -265,7 +265,7 @@ export const sendNote = (note, amount, zaddress, account, tracker, tokenContract
     const shTransfer = yield createShieldedTransfer(note, tracker, amount, change, tokenContract, zaddress, outRho1, outRho2)
     debug('sendNote: createShieldedTransfer finished', shTransfer)
 
-    const n1 = {
+    const sentNote = {
       value: amount,
       rho: outRho1,
       uuid: web3.utils.toHex(web3.utils.sha3(shTransfer.out_cm_1, {encoding: 'hex'})),
@@ -276,9 +276,10 @@ export const sendNote = (note, amount, zaddress, account, tracker, tokenContract
 
     debug('sendNote: Recipient receives note of ' + amount)
 
-    let n2 = {}
+    let changeNote = {}
     if (change.gt(0)) {
-      n2 = {
+      debug('sendNote: Sender receives change of ' + change)
+      changeNote = {
         value: change,
         rho: outRho2,
         uuid: web3.utils.toHex(web3.utils.sha3(shTransfer.out_cm_2, {encoding: 'hex'})),
@@ -288,12 +289,11 @@ export const sendNote = (note, amount, zaddress, account, tracker, tokenContract
       }
     }
 
-    debug('sendNote: Sender receives change of ' + change)
     debug('sendNote: Submit shielded transfer to z-contract...')
 
     const root = yield tokenContract.methods.root().call()
 
-    const hash = yield new Promise((resolve, reject) => {
+    const txHash = yield new Promise((resolve, reject) => {
       tokenContract.methods.shieldedTransfer(
         shTransfer.proof,
         root,
@@ -311,12 +311,13 @@ export const sendNote = (note, amount, zaddress, account, tracker, tokenContract
           resolve(hash)
         })
     })
-    debug('sendNote: Transaction hash: ' + hash)
+    debug('sendNote: Transaction hash: ' + txHash)
 
     const shlddTx = {
-      n: note,
-      n1: n1,
-      n2: n2,
+      txHash,
+      note,
+      sentNote,
+      changeNote,
       to: zaddress,
     }
 

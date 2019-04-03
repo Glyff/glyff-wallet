@@ -31,6 +31,26 @@ const stateSchema = Joi.object().keys({
 }).options({ stripUnknown: true }) // Remove unknown keys
 
 /**
+ * Stringify note attributes
+ *
+ * @param note
+ */
+const stringifyNote = note => {
+  note.value = note.value.toString(10)
+  if (note.date) note.date = note.date.format('YYYY-MM-YY hh:mm:ss')
+}
+
+/**
+ * Load note attributes from strings
+ *
+ * @param note
+ */
+const loadNote = note => {
+  note.value = new BN(note.value)
+  if (note.date) note.date = moment(note.date)
+}
+
+/**
  * Load accounts
  *
  * @return {*}
@@ -83,13 +103,12 @@ const loadState = () => {
   Object.keys(state.trackers).forEach(addr => {
     state.trackers[addr].forEach(tracker => {
       tracker.balance = new BN(tracker.balance)
-      tracker.notes.forEach(note => {
-        note.value = new BN(note.value)
-        if (note.date) note.date = moment(note.date)
-      })
-      tracker.spent.forEach(note => {
-        note.value = new BN(note.value)
-        if (note.date) note.date = moment(note.date)
+      tracker.notes.forEach(note => loadNote(note))
+      tracker.spent.forEach(note => loadNote(note))
+      tracker.sent.forEach(data => {
+        loadNote(data.note)
+        loadNote(data.sentNote)
+        if (data.changeNote) loadNote(data.changeNote)
       })
     })
   })
@@ -160,13 +179,12 @@ export const saveState = (state) => {
   Object.keys(trackers).forEach(addr => {
     trackers[addr].forEach(tracker => {
       tracker.balance = tracker.balance.toString()
-      tracker.notes.forEach(note => {
-        note.value = note.value.toString()
-        if (note.date) note.date = note.date.format('YYYY-MM-YY hh:mm:ss')
-      })
-      tracker.spent.forEach(note => {
-        note.value = note.value.toString()
-        if (note.date) note.date = note.date.format('YYYY-MM-YY hh:mm:ss')
+      tracker.notes.forEach(note => stringifyNote(note))
+      tracker.spent.forEach(note => stringifyNote(note))
+      tracker.sent.forEach(data => {
+        stringifyNote(data.note)
+        stringifyNote(data.sentNote)
+        if (data.changeNote) stringifyNote(data.changeNote)
       })
     })
   })

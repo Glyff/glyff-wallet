@@ -30,8 +30,8 @@ export const createGlyTransaction = (data) => {
     type: 'GLY',
     hash: data.transactionHash || data.hash,
     blockNumber: data.blockNumber,
-    from: data.from.toString(),
-    to: data.to.toString(),
+    from: data.from,
+    to: data.to,
     value: new BN(data.value),
     date: data.timestamp ? moment.unix(data.timestamp) : moment(),
   }

@@ -12,9 +12,6 @@ const state = {
 
   trackers: {},
 
-  // Pending sent notes temporary data (TODO)
-  sentNotes: [],
-
 }
 
 /*
@@ -110,8 +107,8 @@ const actions = {
       commit('START_LOADING')
       commit('SEND_SHIELDED')
 
-      const note = yield sendShielded(rootGetters.currentAccount, rootGetters.glyBalance, amount, zaddress, tracker, rootState.general.tokenContract)
-      commit('SEND_SHIELDED_OK', {tracker, note})
+      const sentNote = yield sendShielded(rootGetters.currentAccount, rootGetters.glyBalance, amount, zaddress, tracker, rootState.general.tokenContract)
+      commit('SEND_SHIELDED_OK', {tracker, sentNote})
     }).catch(err => {
       commit('SEND_SHIELDED_FAIL', err)
       throw err
@@ -184,8 +181,8 @@ const mutations = {
   UNSHIELD_FAIL (state, error) {},
 
   SEND_SHIELDED (state) {},
-  SEND_SHIELDED_OK (state, {tracker, removedNotes, addedNotes}) {
-    // TODO
+  SEND_SHIELDED_OK (state, {tracker, sentNote}) {
+    tracker.sent.push(sentNote)
   },
   SEND_SHIELDED_FAIL (state, error) {},
 

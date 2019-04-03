@@ -14,6 +14,7 @@ export const createTracker = () => {
     return Object.assign({}, keyPair, {
       notes: [],
       spent: [],
+      sent: [],
       lastBlock: 0,
       balance: new BN(0),
     })
